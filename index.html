@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>글 짓는 부엌</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 상단 네비게이션 헤더 -->
+  <header class="header">
+    <div class="header-container">
+      <h1 class="header-title">
+        <a href="#top">글 짓는 부엌</a>
+      </h1>
+      <nav class="header-nav" aria-label="메인 메뉴">
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="https://forms.gle/BktvP7mZ7KpPWmLMA" target="_blank" rel="noopener noreferrer" class="nav-link">
+              출석체크
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#copywriting" class="nav-link">
+              베껴쓰기
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#sites" class="nav-link">
+              사이트
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 메인 스크롤 콘텐츠 -->
+  <main id="top" class="main-content">
+    
+    <!-- 1. 출석체크 섹션 -->
+    <section id="attendance" class="section attendance-section">
+      <div class="container">
+        <h2 class="section-title">출석체크</h2>
+        <div class="attendance-card">
+          <a href="https://forms.gle/BktvP7mZ7KpPWmLMA" target="_blank" rel="noopener noreferrer" class="btn-attendance">
+            <span>출석체크</span>
+            <svg class="icon-arrow" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M7 17l9.2-9.2M17 17V7.8H7.8"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 베껴쓰기 섹션 -->
+    <section id="copywriting" class="section copywriting-section">
+      <div class="container">
+        <h2 class="section-title">베껴쓰기</h2>
+        <div class="copywriting-card">
+          <div id="copywriting-date" class="copywriting-date"></div>
+          <div id="copywriting-title" class="copywriting-item-title" style="display: none;"></div>
+          <div id="copywriting-content" class="copywriting-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. 사이트 섹션 -->
+    <section id="sites" class="section sites-section">
+      <div class="container">
+        <h2 class="section-title">사이트</h2>
+
+        <!-- 글쓰기 -->
+        <div class="site-category">
+          <h3 class="category-title">글쓰기</h3>
+          <div class="dict-card">
+            <div class="dict-header">
+              <span class="site-name">국립국어원 표준국어대사전</span>
+              <a href="https://stdict.korean.go.kr/search/searchResult.do" target="_blank" rel="noopener noreferrer" class="dict-link-url">
+                https://stdict.korean.go.kr/search/searchResult.do
+              </a>
+            </div>
+            <form action="https://stdict.korean.go.kr/search/searchResult.do" method="get" target="_blank" class="dict-search-form">
+              <input type="text" name="searchKeyword" class="dict-search-input" placeholder="검색어 입력" aria-label="국립국어원 표준국어대사전 검색">
+              <button type="submit" class="dict-search-button">
+                <span>검색</span>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- 글쓰기 관련 교육기관 -->
+        <div class="site-category">
+          <h3 class="category-title">글쓰기 관련 교육기관</h3>
+          <div class="site-item">
+            <a href="https://writing.kit.ac.kr" target="_blank" rel="noopener noreferrer" class="site-link">
+              <div class="site-info">
+                <span class="site-name">경남정보대학교 디지털문예창작학과</span>
+                <span class="site-url">https://writing.kit.ac.kr</span>
+              </div>
+              <svg class="icon-arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M7 17l9.2-9.2M17 17V7.8H7.8"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="site-item">
+            <a href="https://univ.bsks.ac.kr/department/writing" target="_blank" rel="noopener noreferrer" class="site-link">
+              <div class="site-info">
+                <span class="site-name">부산경상대학교 AI문예창작과</span>
+                <span class="site-url">https://univ.bsks.ac.kr/department/writing</span>
+              </div>
+              <svg class="icon-arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M7 17l9.2-9.2M17 17V7.8H7.8"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p class="footer-title">글 짓는 부엌</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
