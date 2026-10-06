@@ -2,13 +2,18 @@
  * 글 짓는 부엌 - 첨부 데이터 기반 일자별 베껴쓰기, 글쓰기 및 사용자 인증 스크립트
  * 기능:
  * 1. 베껴쓰기: A열 날짜에 해당하는 B열 내용을 매일 0시에 자동으로 화면에 반영
- * 2. 사용자 인증: 상단 이름 및 비밀번호(숫자 4자리) 입력 후 글쓰기 메뉴 활성화
- * 3. 글쓰기: 제목란과 내용란 분리 작성, 내가 쓴 글 제목 5줄 스크롤 리스트, 지난 글 보기 및 수정 기능
- * 4. 국립국어원 표준국어대사전 검색창 처리
+ * 2. 사용자 인증 및 자동 출석체크: 상단 이름/비밀번호 입력 시 자동 출석 기록
+ * 3. 관리자 출석부: 관리자(예성원/8797) 로그인 시에만 엑셀 양식의 출석체크 양식(날짜, 이름, 비번, 누적 출석 횟수) 노출
+ * 4. 글쓰기: 제목란/내용란 분리 작성, 내가 쓴 글 제목 5줄 스크롤 리스트, 지난 글 보기 및 수정/삭제
+ * 5. 국립국어원 표준국어대사전 검색창 처리
  */
 
 (function () {
   'use strict';
+
+  // 관리자 계정 정보
+  const ADMIN_NAME = '예성원';
+  const ADMIN_PIN = '8797';
 
   // 첨부된 엑셀/CSV 데이터 목록 (A열: 날짜, B열: 내용)
   const writingSchedule = [
@@ -40,6 +45,7 @@
   // 로컬 스토리지 키
   const STORAGE_KEY_POSTS = 'senior_kitchen_writings_v2';
   const STORAGE_KEY_USER = 'senior_kitchen_current_user_v2';
+  const STORAGE_KEY_ATTENDANCE = 'senior_kitchen_attendance_v2';
 
   // 베껴쓰기 DOM 요소
   const dateElement = document.getElementById('copywriting-date');
@@ -74,6 +80,12 @@
   const editPostContent = document.getElementById('edit-post-content');
   const btnSaveEdit = document.getElementById('btn-save-edit');
   const btnCancelEdit = document.getElementById('btn-cancel-edit');
+
+  // 관리자 출석체크 DOM 요소
+  const adminAttendanceSection = document.getElementById('admin-attendance');
+  const adminNavItem = document.getElementById('admin-nav-item');
+  const attendanceTableBody = document.getElementById('attendance-table-body');
+  const btnDownloadAttendance = document.getElementById('btn-download-attendance');
 
   let lastLoadedDay = null;
   let currentUser = null; // { name: string, pin: string }
@@ -151,7 +163,7 @@
   setInterval(checkDayChange, 10000);
 
   /* ========================================================
-     2. 사용자 인증 (이름, 비밀번호 숫자 4자리)
+     2. 사용자 인증 및 자동 출석체크
      ======================================================== */
   function getStoredUser() {
     try {
@@ -172,11 +184,153 @@
     } catch (e) {}
   }
 
+  function isAdmin(user) {
+    return user && user.name === ADMIN_NAME && user.pin === ADMIN_PIN;
+  }
+
+  /**
+   * 출석 기록 불러오기 및 저장
+   */
+  function getAttendanceRecords() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_ATTENDANCE);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveAttendanceRecords(records) {
+    try {
+      localStorage.setItem(STORAGE_KEY_ATTENDANCE, JSON.stringify(records));
+    } catch (e) {}
+  }
+
+  /**
+   * 이름과 비밀번호 입력 시 자동 출석체크 수행
+   * 양식: 날짜, 이름, 비번, 누적 출석 횟수
+   */
+  function recordAttendance(user) {
+    if (!user || !user.name || !user.pin) return;
+
+    const records = getAttendanceRecords();
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayDateStr = `${year}-${month}-${day}`;
+
+    // 해당 사용자가 오늘 이미 출석체크 되었는지 확인
+    const alreadyAttendedToday = records.some(function (r) {
+      return r.name === user.name && r.pin === user.pin && r.date === todayDateStr;
+    });
+
+    if (!alreadyAttendedToday) {
+      // 해당 사용자의 이전 고유 출석일수 계산
+      const userPastDates = new Set();
+      records.forEach(function (r) {
+        if (r.name === user.name && r.pin === user.pin) {
+          userPastDates.add(r.date);
+        }
+      });
+      const newCount = userPastDates.size + 1;
+
+      const newRecord = {
+        date: todayDateStr,
+        name: user.name,
+        pin: user.pin,
+        count: newCount,
+        timestamp: Date.now()
+      };
+
+      records.push(newRecord);
+      saveAttendanceRecords(records);
+    }
+  }
+
+  /**
+   * 관리자 출석체크 테이블 렌더링 (날짜, 이름, 비번, 누적 출석 횟수, 삭제 버튼)
+   */
+  function renderAdminAttendanceTable() {
+    if (!attendanceTableBody) return;
+
+    const records = getAttendanceRecords();
+    if (records.length === 0) {
+      attendanceTableBody.innerHTML = '<tr><td colspan="5" class="attendance-empty-row">출석 기록이 없습니다.</td></tr>';
+      return;
+    }
+
+    let html = '';
+    records.forEach(function (rec, index) {
+      html += `
+        <tr>
+          <td>${escapeHtml(rec.date)}</td>
+          <td>${escapeHtml(rec.name)}</td>
+          <td>${escapeHtml(rec.pin)}</td>
+          <td>${rec.count}</td>
+          <td><button type="button" class="btn-row-delete" data-index="${index}">삭제</button></td>
+        </tr>
+      `;
+    });
+    attendanceTableBody.innerHTML = html;
+
+    // 각 행 삭제 버튼 이벤트 바인딩
+    const deleteBtns = attendanceTableBody.querySelectorAll('.btn-row-delete');
+    deleteBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const idx = parseInt(btn.getAttribute('data-index'), 10);
+        if (confirm('해당 출석 기록을 삭제하시겠습니까?')) {
+          deleteAttendanceRecord(idx);
+        }
+      });
+    });
+  }
+
+  function deleteAttendanceRecord(index) {
+    const records = getAttendanceRecords();
+    if (index >= 0 && index < records.length) {
+      records.splice(index, 1);
+      saveAttendanceRecords(records);
+      renderAdminAttendanceTable();
+    }
+  }
+
+  /**
+   * 출석부 CSV 다운로드 기능
+   */
+  function initAttendanceDownload() {
+    if (!btnDownloadAttendance) return;
+
+    btnDownloadAttendance.addEventListener('click', function () {
+      const records = getAttendanceRecords();
+      let csvContent = '\uFEFF날짜,이름,비번,누적 출석 횟수\n';
+
+      records.forEach(function (r) {
+        const cleanName = String(r.name).replace(/"/g, '""');
+        const cleanPin = String(r.pin).replace(/"/g, '""');
+        csvContent += `"${r.date}","${cleanName}","${cleanPin}",${r.count}\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `출석부_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    });
+  }
+
   function setAuthState(user) {
     currentUser = user;
     selectedPostId = null;
 
     if (user) {
+      // 1. 자동 출석체크 수행
+      recordAttendance(user);
+
       if (authForm) authForm.style.display = 'none';
       if (authStatus) authStatus.style.display = 'flex';
       if (authUserDisplay) authUserDisplay.textContent = `${user.name}님`;
@@ -185,6 +339,16 @@
       if (writingUnlockedView) writingUnlockedView.style.display = 'block';
 
       renderUserPosts();
+
+      // 2. 관리자(예성원/8797) 로그인 시에만 출석체크 양식 노출
+      if (isAdmin(user)) {
+        if (adminAttendanceSection) adminAttendanceSection.style.display = 'block';
+        if (adminNavItem) adminNavItem.style.display = 'inline-block';
+        renderAdminAttendanceTable();
+      } else {
+        if (adminAttendanceSection) adminAttendanceSection.style.display = 'none';
+        if (adminNavItem) adminNavItem.style.display = 'none';
+      }
     } else {
       if (authForm) {
         authForm.style.display = 'flex';
@@ -198,6 +362,9 @@
 
       if (userPostsList) userPostsList.innerHTML = '';
       if (postViewCard) postViewCard.style.display = 'none';
+
+      if (adminAttendanceSection) adminAttendanceSection.style.display = 'none';
+      if (adminNavItem) adminNavItem.style.display = 'none';
     }
   }
 
@@ -305,14 +472,12 @@
 
     userPostsList.innerHTML = html;
 
-    // 제목 클릭 시 지난 글 보기 이벤트 연결
     const items = userPostsList.querySelectorAll('.user-post-item');
     items.forEach(function (item) {
       item.addEventListener('click', function () {
         const id = item.getAttribute('data-id');
         selectedPostId = id;
 
-        // active 클래스 업데이트
         items.forEach(function (el) { el.classList.remove('active'); });
         item.classList.add('active');
 
@@ -339,7 +504,6 @@
 
     postViewCard.style.display = 'block';
 
-    // 읽기 모드로 초기화
     if (postReadMode) postReadMode.style.display = 'block';
     if (postEditMode) postEditMode.style.display = 'none';
 
@@ -352,7 +516,6 @@
    * 지난 글 수정/삭제 메뉴 초기화
    */
   function initPostViewActions() {
-    // [수정] 버튼 클릭 시 수정 모드로 전환
     if (btnEditPost) {
       btnEditPost.addEventListener('click', function () {
         if (!selectedPostId) return;
@@ -371,7 +534,6 @@
       });
     }
 
-    // [취소] 버튼 클릭 시 읽기 모드로 복귀
     if (btnCancelEdit) {
       btnCancelEdit.addEventListener('click', function () {
         if (postReadMode) postReadMode.style.display = 'block';
@@ -379,7 +541,6 @@
       });
     }
 
-    // [저장] 버튼 클릭 시 수정 내용 반영
     if (btnSaveEdit) {
       btnSaveEdit.addEventListener('click', function () {
         if (!selectedPostId) return;
@@ -413,7 +574,6 @@
       });
     }
 
-    // [삭제] 버튼 클릭 시 글 삭제
     if (btnDeletePost) {
       btnDeletePost.addEventListener('click', function () {
         if (!selectedPostId) return;
@@ -477,7 +637,7 @@
       };
 
       const allPosts = getAllPosts();
-      allPosts.unshift(newPost); // 최신 글이 맨 위로
+      allPosts.unshift(newPost);
       saveAllPosts(allPosts);
 
       if (postTitleInput) postTitleInput.value = '';
@@ -486,7 +646,6 @@
       selectedPostId = newPost.id;
       renderUserPosts();
 
-      // 등록한 글 보기 카드로 부드럽게 스크롤 이동
       if (postViewCard) {
         postViewCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
@@ -518,6 +677,7 @@
     initAuth();
     initWriting();
     initPostViewActions();
+    initAttendanceDownload();
     initDictSearch();
   });
 })();

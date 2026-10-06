@@ -16,11 +16,6 @@
       <nav class="header-nav" aria-label="메인 메뉴">
         <ul class="nav-list">
           <li class="nav-item">
-            <a href="https://forms.gle/BktvP7mZ7KpPWmLMA" target="_blank" rel="noopener noreferrer" class="nav-link">
-              출석체크
-            </a>
-          </li>
-          <li class="nav-item">
             <a href="#copywriting" class="nav-link">
               베껴쓰기
             </a>
@@ -33,6 +28,11 @@
           <li class="nav-item">
             <a href="#sites" class="nav-link">
               사이트
+            </a>
+          </li>
+          <li class="nav-item" id="admin-nav-item" style="display: none;">
+            <a href="#admin-attendance" class="nav-link">
+              출석체크
             </a>
           </li>
         </ul>
@@ -63,21 +63,6 @@
 
   <!-- 메인 스크롤 콘텐츠 -->
   <main id="top" class="main-content">
-    
-    <!-- 1. 출석체크 섹션 -->
-    <section id="attendance" class="section attendance-section">
-      <div class="container">
-        <h2 class="section-title">출석체크</h2>
-        <div class="attendance-card">
-          <a href="https://forms.gle/BktvP7mZ7KpPWmLMA" target="_blank" rel="noopener noreferrer" class="btn-attendance">
-            <span>출석체크</span>
-            <svg class="icon-arrow" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M7 17l9.2-9.2M17 17V7.8H7.8"/>
-            </svg>
-          </a>
-        </div>
-      </div>
-    </section>
 
     <!-- 2. 베껴쓰기 섹션 -->
     <section id="copywriting" class="section copywriting-section">
@@ -220,6 +205,29 @@
           </div>
         </div>
 
+    <!-- 관리자 전용 출석체크 양식 섹션 (관리자 예성원 / 비번 8797 로그인 시에만 노출) -->
+    <section id="admin-attendance" class="section admin-attendance-section" style="display: none;">
+      <div class="container">
+        <h2 class="section-title">출석체크</h2>
+        <div class="card admin-attendance-card">
+          <div class="table-container">
+            <table class="attendance-table">
+              <thead>
+                <tr>
+                  <th>날짜</th>
+                  <th>이름</th>
+                  <th>비번</th>
+                  <th>누적 출석 횟수</th>
+                  <th>삭제</th>
+                </tr>
+              </thead>
+              <tbody id="attendance-table-body"></tbody>
+            </table>
+          </div>
+          <div class="admin-actions">
+            <button type="button" id="btn-download-attendance" class="btn-action btn-save">출석부 다운로드 (.csv)</button>
+          </div>
+        </div>
       </div>
     </section>
 

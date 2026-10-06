@@ -284,45 +284,149 @@ a {
 }
 
 /* ========================================================
-   1. 출석체크 섹션
+   관리자 전용 출석체크 양식 (회색 계열 & 5줄 스크롤 테이블)
    ======================================================== */
-.attendance-section {
-  background-color: transparent;
+.admin-attendance-section {
+  background-color: #EBEBEB; /* 회색 계열 배경 */
+  border-top: 1px solid #D2D2D2;
+  border-bottom: 1px solid #D2D2D2;
 }
 
-.attendance-card {
-  background-color: var(--bg-card);
-  border: 2px solid var(--green-border);
+.admin-attendance-section .section-title {
+  color: #333333;
+}
+
+.admin-attendance-section .section-title::after {
+  background: #666666;
+}
+
+.admin-attendance-card {
+  background-color: #FFFFFF;
+  border: 2px solid #C4C4C4;
   border-radius: var(--radius-card);
   padding: 36px 32px;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
 }
 
-.btn-attendance {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
+.admin-attendance-section .table-container {
   width: 100%;
-  min-height: 76px;
-  padding: 20px 32px;
-  font-size: 26px;
-  font-weight: 800;
-  color: #FFFFFF;
-  background-color: var(--green-primary);
-  border: 3px solid var(--green-primary);
-  border-radius: var(--radius-button);
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(51, 108, 78, 0.25);
-  transition: all 0.25s ease;
+  max-height: 338px; /* 헤더(58px) + 5행(56px * 5 = 280px) = 338px (5줄 초과 시 스크롤) */
+  overflow-y: auto;
+  overflow-x: auto;
+  margin-bottom: 24px;
+  border: 2px solid #D0D0D0;
+  border-radius: 14px;
+  background-color: #FFFFFF;
 }
 
-.btn-attendance:hover,
-.btn-attendance:focus-visible {
-  background-color: var(--green-hover);
-  border-color: var(--green-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(51, 108, 78, 0.35);
+.admin-attendance-section .table-container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.admin-attendance-section .table-container::-webkit-scrollbar-track {
+  background: #F0F0F0;
+  border-radius: 8px;
+}
+
+.admin-attendance-section .table-container::-webkit-scrollbar-thumb {
+  background: #B5B5B5;
+  border-radius: 8px;
+}
+
+.admin-attendance-section .table-container::-webkit-scrollbar-thumb:hover {
+  background: #777777;
+}
+
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 21px;
+}
+
+.attendance-table thead tr {
+  background-color: #E2E2E2;
+}
+
+.attendance-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 58px;
+  padding: 12px 18px;
+  font-weight: 800;
+  color: #2B2B2B;
+  background-color: #E2E2E2;
+  border-bottom: 2px solid #C5C5C5;
+  border-right: 1px solid #D0D0D0;
+  white-space: nowrap;
+}
+
+.attendance-table th:last-child {
+  border-right: none;
+}
+
+.attendance-table td {
+  height: 56px;
+  padding: 12px 18px;
+  border-bottom: 1px solid #E0E0E0;
+  border-right: 1px solid #E0E0E0;
+  color: #333333;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.attendance-table td:last-child {
+  border-right: none;
+}
+
+.attendance-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.attendance-table tbody tr:hover {
+  background-color: #F5F5F5;
+}
+
+.btn-row-delete {
+  font-size: 17px;
+  font-weight: 700;
+  color: #C0392B;
+  background-color: #FFFFFF;
+  border: 1.5px solid #E6B0AA;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-row-delete:hover {
+  background-color: #FDEDEC;
+  border-color: #C0392B;
+  color: #922B21;
+}
+
+.attendance-empty-row td {
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+
+.admin-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-download {
+  background-color: #555555;
+  color: #FFFFFF;
+  border: 2px solid #555555;
+}
+
+.btn-download:hover {
+  background-color: #333333;
+  border-color: #333333;
 }
 
 /* ========================================================
@@ -875,8 +979,7 @@ a {
   transition: transform 0.2s ease;
 }
 
-.site-link:hover .icon-arrow,
-.btn-attendance:hover .icon-arrow {
+.site-link:hover .icon-arrow {
   transform: translate(2px, -2px);
 }
 
@@ -932,10 +1035,17 @@ a {
     font-size: 28px;
   }
 
-  .btn-attendance {
-    font-size: 22px;
-    min-height: 68px;
-    padding: 16px 24px;
+  .attendance-table {
+    font-size: 17px;
+  }
+
+  .attendance-table th,
+  .attendance-table td {
+    padding: 12px 14px;
+  }
+
+  .admin-attendance-card {
+    padding: 24px 18px;
   }
 
   .copywriting-card {
