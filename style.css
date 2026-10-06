@@ -140,6 +140,117 @@ a {
 }
 
 /* ========================================================
+   상단 사용자 인증 바 (이름, 비밀번호 숫자 4자리)
+   ======================================================== */
+.user-auth-bar {
+  background-color: #EBF2EC;
+  border-bottom: 2px solid var(--green-border);
+  padding: 14px 0;
+}
+
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.auth-form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.auth-input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-label {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.auth-input {
+  height: 52px;
+  padding: 8px 18px;
+  font-size: 20px;
+  font-family: inherit;
+  color: var(--text-main);
+  background-color: #FFFFFF;
+  border: 2px solid var(--green-border);
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.auth-input:focus {
+  border-color: var(--green-primary);
+  box-shadow: 0 0 0 3px rgba(51, 108, 78, 0.15);
+}
+
+.auth-input.auth-pin {
+  width: 140px;
+  letter-spacing: 4px;
+  text-align: center;
+}
+
+.auth-btn {
+  height: 52px;
+  padding: 0 26px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFFFFF;
+  background-color: var(--green-primary);
+  border: 2px solid var(--green-primary);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.auth-btn:hover,
+.auth-btn:focus-visible {
+  background-color: var(--green-hover);
+  border-color: var(--green-hover);
+  transform: translateY(-1px);
+}
+
+.auth-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.auth-user-text {
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--green-primary);
+}
+
+.auth-logout-btn {
+  height: 48px;
+  padding: 0 20px;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background-color: #FFFFFF;
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-logout-btn:hover {
+  background-color: var(--blue-soft);
+  color: var(--blue-primary);
+  border-color: var(--blue-border);
+}
+
+/* ========================================================
    본문 스크롤 섹션
    ======================================================== */
 .main-content {
@@ -266,7 +377,335 @@ a {
 }
 
 /* ========================================================
-   3. 사이트 섹션
+   3. 글쓰기 섹션
+   ======================================================== */
+.writing-section {
+  background-color: rgba(234, 243, 236, 0.45);
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.writing-notice-card {
+  background-color: var(--bg-card);
+  border: 2px dashed var(--green-border);
+  border-radius: var(--radius-card);
+  padding: 44px 32px;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+}
+
+.writing-notice-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+.writing-form-card {
+  background-color: var(--bg-card);
+  border: 2px solid var(--green-border);
+  border-radius: var(--radius-card);
+  padding: 36px 32px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 40px;
+}
+
+.post-form .form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.post-title-input {
+  width: 100%;
+  height: 58px;
+  padding: 12px 20px;
+  font-size: 22px;
+  font-family: inherit;
+  color: var(--text-main);
+  background-color: #FAFCFA;
+  border: 2.5px solid var(--green-border);
+  border-radius: var(--radius-button);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.post-title-input:focus {
+  border-color: var(--green-primary);
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(51, 108, 78, 0.15);
+}
+
+.post-textarea {
+  width: 100%;
+  min-height: 180px;
+  padding: 20px 22px;
+  font-size: 22px;
+  line-height: 1.9;
+  font-family: inherit;
+  color: var(--text-main);
+  background-color: #FAFCFA;
+  border: 2.5px solid var(--green-border);
+  border-radius: var(--radius-button);
+  outline: none;
+  resize: vertical;
+  transition: all 0.2s ease;
+}
+
+.post-textarea:focus {
+  border-color: var(--green-primary);
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(51, 108, 78, 0.15);
+}
+
+.btn-post-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  padding: 16px 40px;
+  font-size: 24px;
+  font-weight: 800;
+  color: #FFFFFF;
+  background-color: var(--green-primary);
+  border: 2.5px solid var(--green-primary);
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(51, 108, 78, 0.2);
+}
+
+.btn-post-submit:hover,
+.btn-post-submit:focus-visible {
+  background-color: var(--green-hover);
+  border-color: var(--green-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(51, 108, 78, 0.3);
+}
+
+/* ========================================================
+   내가 쓴 글 제목 5줄 리스트 (5줄 초과 시 스크롤)
+   ======================================================== */
+.user-posts-section {
+  margin-top: 36px;
+}
+
+.user-posts-heading {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 22px;
+  padding-left: 12px;
+  border-left: 5px solid var(--blue-primary);
+}
+
+.user-posts-scroll-container {
+  max-height: 320px; /* 64px * 5줄 = 320px (5줄 초과 시 스크롤) */
+  overflow-y: auto;
+  border: 2px solid var(--blue-border);
+  border-radius: var(--radius-card);
+  background-color: var(--bg-card);
+  box-shadow: var(--shadow-card);
+}
+
+.user-posts-scroll-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.user-posts-scroll-container::-webkit-scrollbar-track {
+  background: var(--blue-soft);
+  border-radius: 8px;
+}
+
+.user-posts-scroll-container::-webkit-scrollbar-thumb {
+  background: var(--blue-border);
+  border-radius: 8px;
+}
+
+.user-posts-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: var(--blue-primary);
+}
+
+.user-posts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.user-post-item {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1.5px solid var(--border-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.user-post-item:last-child {
+  border-bottom: none;
+}
+
+.user-post-item:hover {
+  background-color: var(--green-soft);
+}
+
+.user-post-item.active {
+  background-color: var(--blue-soft);
+  border-left: 6px solid var(--blue-primary);
+}
+
+.user-post-item-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  padding-right: 18px;
+}
+
+.user-post-item.active .user-post-item-title {
+  color: var(--blue-primary);
+}
+
+.user-post-item-date {
+  font-size: 18px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.user-empty-posts {
+  padding: 40px 24px;
+  text-align: center;
+  font-size: 22px;
+  color: var(--text-muted);
+}
+
+/* ========================================================
+   지난 글 보기 및 수정 카드
+   ======================================================== */
+.post-view-card {
+  background-color: var(--bg-card);
+  border: 2.5px solid var(--blue-border);
+  border-radius: var(--radius-card);
+  padding: 36px 36px;
+  box-shadow: var(--shadow-card);
+  margin-top: 28px;
+}
+
+.post-view-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 2px solid var(--border-light);
+}
+
+.post-view-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--blue-primary);
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.post-view-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.post-view-date {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.post-view-actions,
+.edit-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-action {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 19px;
+  font-weight: 700;
+  font-family: inherit;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-edit {
+  background-color: var(--blue-soft);
+  color: var(--blue-primary);
+  border: 2px solid var(--blue-border);
+}
+
+.btn-edit:hover {
+  background-color: var(--blue-primary);
+  color: #FFFFFF;
+}
+
+.btn-delete {
+  background-color: #FFFFFF;
+  color: #AA3333;
+  border: 2px solid #DDAAAA;
+}
+
+.btn-delete:hover {
+  background-color: #FFEAEA;
+  color: #881111;
+  border-color: #AA2222;
+}
+
+.btn-save {
+  background-color: var(--green-primary);
+  color: #FFFFFF;
+  border: 2px solid var(--green-primary);
+}
+
+.btn-save:hover {
+  background-color: var(--green-hover);
+  border-color: var(--green-hover);
+}
+
+.btn-cancel {
+  background-color: #F0F2F0;
+  color: #444444;
+  border: 2px solid var(--border-light);
+}
+
+.btn-cancel:hover {
+  background-color: #E2E6E2;
+}
+
+.post-view-body {
+  font-size: 24px;
+  line-height: 2.1;
+  color: var(--text-main);
+  white-space: pre-wrap;
+  min-height: 100px;
+}
+
+/* ========================================================
+   4. 사이트 섹션
    ======================================================== */
 .sites-section {
   background-color: transparent;
@@ -544,6 +983,76 @@ a {
   .dict-search-button {
     min-height: 58px;
     width: 100%;
+    font-size: 20px;
+  }
+
+  .auth-form {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .auth-input-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .auth-input {
+    width: 100% !important;
+    height: 50px;
+  }
+
+  .auth-btn {
+    width: 100%;
+    height: 52px;
+  }
+
+  .auth-status {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .post-title-input {
+    height: 52px;
+    font-size: 20px;
+  }
+
+  .post-textarea {
+    font-size: 20px;
+    padding: 16px;
+  }
+
+  .btn-post-submit {
+    width: 100%;
+    font-size: 22px;
+    min-height: 58px;
+  }
+
+  .user-post-item {
+    height: 58px;
+    padding: 0 16px;
+  }
+
+  .user-post-item-title {
+    font-size: 19px;
+  }
+
+  .user-post-item-date {
+    font-size: 16px;
+  }
+
+  .post-view-card {
+    padding: 24px 18px;
+  }
+
+  .post-view-title {
+    font-size: 24px;
+  }
+
+  .post-view-body {
     font-size: 20px;
   }
 }
