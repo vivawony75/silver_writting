@@ -17,22 +17,32 @@
         <ul class="nav-list">
           <li class="nav-item">
             <a href="#copywriting" class="nav-link">
+              <span class="nav-badge badge-green">필사</span>
               베껴쓰기
             </a>
           </li>
           <li class="nav-item">
             <a href="#writing" class="nav-link">
+              <span class="nav-badge badge-blue">창작</span>
               글쓰기
             </a>
           </li>
           <li class="nav-item">
             <a href="#sites" class="nav-link">
+              <span class="nav-badge badge-teal">링크</span>
               사이트
             </a>
           </li>
           <li class="nav-item" id="admin-nav-item" style="display: none;">
             <a href="#admin-attendance" class="nav-link">
+              <span class="nav-badge badge-gray">관리자</span>
               출석체크
+            </a>
+          </li>
+          <li class="nav-item" id="admin-posts-nav-item" style="display: none;">
+            <a href="#admin-posts" class="nav-link">
+              <span class="nav-badge badge-gray">관리자</span>
+              회원 글 모음
             </a>
           </li>
         </ul>
@@ -41,7 +51,7 @@
   </header>
 
   <!-- 상단 이름 및 비밀번호(숫자 4자리) 입력 바 -->
-  <div class="user-auth-bar">
+  <div class="user-auth-bar" id="user-auth-bar">
     <div class="container auth-container">
       <form id="auth-form" class="auth-form">
         <div class="auth-input-group">
@@ -67,7 +77,10 @@
     <!-- 2. 베껴쓰기 섹션 -->
     <section id="copywriting" class="section copywriting-section">
       <div class="container">
-        <h2 class="section-title">베껴쓰기</h2>
+        <h2 class="section-title">
+          <span class="menu-title-badge badge-green">매일 필사</span>
+          <span>베껴쓰기</span>
+        </h2>
         <div class="copywriting-card">
           <div id="copywriting-date" class="copywriting-date"></div>
           <div id="copywriting-title" class="copywriting-item-title" style="display: none;"></div>
@@ -79,7 +92,10 @@
     <!-- 3. 글쓰기 섹션 -->
     <section id="writing" class="section writing-section">
       <div class="container">
-        <h2 class="section-title">글쓰기</h2>
+        <h2 class="section-title">
+          <span class="menu-title-badge badge-blue">마음 나누기</span>
+          <span>글쓰기</span>
+        </h2>
 
         <!-- 미입력 시 안내 화면 -->
         <div id="writing-locked-view" class="card writing-notice-card">
@@ -152,7 +168,10 @@
     <!-- 4. 사이트 섹션 -->
     <section id="sites" class="section sites-section">
       <div class="container">
-        <h2 class="section-title">사이트</h2>
+        <h2 class="section-title">
+          <span class="menu-title-badge badge-teal">추천 링크</span>
+          <span>사이트</span>
+        </h2>
 
         <!-- 글쓰기 -->
         <div class="site-category">
@@ -204,11 +223,55 @@
             </a>
           </div>
         </div>
+      </div>
+    </section>
 
     <!-- 관리자 전용 출석체크 양식 섹션 (관리자 예성원 / 비번 8797 로그인 시에만 노출) -->
     <section id="admin-attendance" class="section admin-attendance-section" style="display: none;">
       <div class="container">
-        <h2 class="section-title">출석체크</h2>
+        <h2 class="section-title">
+          <span class="menu-title-badge badge-gray">관리자 전용</span>
+          <span>출석체크</span>
+        </h2>
+
+        <!-- 다른 기기(PC, 모바일폰) 실시간 동기화 제어 카드 -->
+        <div class="card admin-sync-card">
+          <div class="admin-sync-header">
+            <div class="admin-sync-status">
+              <span class="sync-indicator-dot" id="sync-indicator-dot"></span>
+              <span class="sync-status-text" id="sync-status-text">다른 기기(PC, 모바일) 실시간 연동 대기 중</span>
+            </div>
+            <div class="admin-sync-actions">
+              <button type="button" id="btn-sync-now" class="btn-action btn-sync">🔄 지금 동기화 새로고침</button>
+              <button type="button" id="btn-sync-settings" class="btn-action btn-cancel">⚙️ 클라우드 DB 설정</button>
+              <button type="button" id="btn-sync-backup" class="btn-action btn-cancel">💾 백업/복원</button>
+            </div>
+          </div>
+          <!-- 클라우드 DB 설정 패널 -->
+          <div id="sync-settings-panel" class="sync-settings-panel" style="display: none;">
+            <div class="sync-input-group">
+              <label for="cloud-db-url-input" class="sync-label">클라우드 데이터베이스 URL (Firebase Realtime DB 또는 REST API):</label>
+              <input type="url" id="cloud-db-url-input" class="sync-input" placeholder="https://your-project-id.firebaseio.com">
+            </div>
+            <div class="sync-panel-actions">
+              <button type="button" id="btn-save-sync-url" class="btn-action btn-save">주소 저장 및 즉시 연결</button>
+              <button type="button" id="btn-reset-sync-url" class="btn-action btn-cancel">기본값 복원</button>
+            </div>
+            <p class="sync-help-text">※ 다른 기기(스마트폰, 다른 PC)와 실시간 연동하려면 Google Firebase 무료 Realtime Database 주소를 입력하면 자동으로 모든 기기의 출석과 글이 합쳐집니다.</p>
+          </div>
+          <!-- 기기 간 수동 백업/복원 패널 -->
+          <div id="sync-backup-panel" class="sync-backup-panel" style="display: none;">
+            <div class="sync-backup-row">
+              <button type="button" id="btn-export-backup" class="btn-action btn-save">📥 전체 데이터 파일 다운로드 (.json)</button>
+              <label class="btn-action btn-cancel btn-file-label">
+                📤 파일에서 불러오기 (.json)
+                <input type="file" id="input-import-backup" accept=".json" style="display: none;">
+              </label>
+            </div>
+            <p class="sync-help-text">※ 인터넷 클라우드 없이도 스마트폰에서 내보낸 파일을 관리자 PC에서 불러오면 모든 출석과 글을 즉시 합칠 수 있습니다.</p>
+          </div>
+        </div>
+
         <div class="card admin-attendance-card">
           <div class="table-container">
             <table class="attendance-table">
@@ -226,6 +289,36 @@
           </div>
           <div class="admin-actions">
             <button type="button" id="btn-download-attendance" class="btn-action btn-save">출석부 다운로드 (.csv)</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 관리자 전용 회원 글 모음 섹션 (출석체크 아래 회색 영역, 관리자 로그인 시에만 노출) -->
+    <section id="admin-posts" class="section admin-posts-section" style="display: none;">
+      <div class="container">
+        <h2 class="section-title">
+          <span class="menu-title-badge badge-gray">관리자 전용</span>
+          <span>회원 글 모음</span>
+        </h2>
+        <div class="card admin-posts-card">
+          <div class="table-container admin-posts-table-container">
+            <table class="admin-posts-table">
+              <thead>
+                <tr>
+                  <th class="col-num">번호</th>
+                  <th class="col-date">작성일시</th>
+                  <th class="col-author">작성자</th>
+                  <th class="col-title">제목</th>
+                  <th class="col-content">내용</th>
+                </tr>
+              </thead>
+              <tbody id="admin-posts-table-body"></tbody>
+            </table>
+          </div>
+          <div class="admin-actions admin-posts-actions">
+            <button type="button" id="btn-download-posts-txt" class="btn-action btn-save">회원 글 모음 다운로드 (.txt)</button>
+            <button type="button" id="btn-download-posts-csv" class="btn-action btn-edit">회원 글 모음 다운로드 (.csv)</button>
           </div>
         </div>
       </div>

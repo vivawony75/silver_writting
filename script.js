@@ -46,12 +46,15 @@
   const STORAGE_KEY_POSTS = 'senior_kitchen_writings_v2';
   const STORAGE_KEY_USER = 'senior_kitchen_current_user_v2';
   const STORAGE_KEY_ATTENDANCE = 'senior_kitchen_attendance_v2';
+  const STORAGE_KEY_CLOUD_URL = 'senior_kitchen_cloud_url_v2';
+  const DEFAULT_CLOUD_URL = 'https://senior-kitchen-default-rtdb.firebaseio.com';
 
   // 베껴쓰기 DOM 요소
   const dateElement = document.getElementById('copywriting-date');
   const contentElement = document.getElementById('copywriting-content');
 
   // 사용자 인증 DOM 요소
+  const userAuthBar = document.getElementById('user-auth-bar') || document.querySelector('.user-auth-bar');
   const authForm = document.getElementById('auth-form');
   const userNameInput = document.getElementById('user-name');
   const userPinInput = document.getElementById('user-pin');
@@ -81,12 +84,33 @@
   const btnSaveEdit = document.getElementById('btn-save-edit');
   const btnCancelEdit = document.getElementById('btn-cancel-edit');
 
-  // 관리자 출석체크 DOM 요소
+  // 관리자 전용 출석체크 및 회원 글 모음 DOM 요소
   const adminAttendanceSection = document.getElementById('admin-attendance');
   const adminNavItem = document.getElementById('admin-nav-item');
   const attendanceTableBody = document.getElementById('attendance-table-body');
   const btnDownloadAttendance = document.getElementById('btn-download-attendance');
 
+  const adminPostsSection = document.getElementById('admin-posts');
+  const adminPostsNavItem = document.getElementById('admin-posts-nav-item');
+  const adminPostsTableBody = document.getElementById('admin-posts-table-body');
+  const btnDownloadPostsTxt = document.getElementById('btn-download-posts-txt');
+  const btnDownloadPostsCsv = document.getElementById('btn-download-posts-csv');
+
+  // 기기 간 실시간 동기화 DOM 요소
+  const syncIndicatorDot = document.getElementById('sync-indicator-dot');
+  const syncStatusText = document.getElementById('sync-status-text');
+  const btnSyncNow = document.getElementById('btn-sync-now');
+  const btnSyncSettings = document.getElementById('btn-sync-settings');
+  const btnSyncBackup = document.getElementById('btn-sync-backup');
+  const syncSettingsPanel = document.getElementById('sync-settings-panel');
+  const syncBackupPanel = document.getElementById('sync-backup-panel');
+  const cloudDbUrlInput = document.getElementById('cloud-db-url-input');
+  const btnSaveSyncUrl = document.getElementById('btn-save-sync-url');
+  const btnResetSyncUrl = document.getElementById('btn-reset-sync-url');
+  const btnExportBackup = document.getElementById('btn-export-backup');
+  const inputImportBackup = document.getElementById('input-import-backup');
+
+  let adminSyncTimer = null;
   let lastLoadedDay = null;
   let currentUser = null; // { name: string, pin: string }
   let selectedPostId = null;
@@ -245,6 +269,7 @@
 
       records.push(newRecord);
       saveAttendanceRecords(records);
+      cloudPushAttendance(newRecord);
     }
   }
 
@@ -292,6 +317,7 @@
       records.splice(index, 1);
       saveAttendanceRecords(records);
       renderAdminAttendanceTable();
+      cloudSyncAllAttendance(records);
     }
   }
 
@@ -323,6 +349,349 @@
     });
   }
 
+  /**
+   * 관리자 회원 글 모음 테이블 렌더링
+   */
+  function renderAdminPostsTable() {
+    if (!adminPostsTableBody) return;
+
+    const allPosts = getAllPosts();
+    if (allPosts.length === 0) {
+      adminPostsTableBody.innerHTML = '<tr><td colspan="5" class="admin-posts-empty-row">작성된 회원 글이 없습니다.</td></tr>';
+      return;
+    }
+
+    let html = '';
+    allPosts.forEach(function (post, index) {
+      const num = allPosts.length - index;
+      const title = escapeHtml(post.title || '제목 없음');
+      const author = escapeHtml(post.author || '익명');
+      const date = escapeHtml(post.createdAt || '');
+      const content = escapeHtml(post.content || '');
+      const cleanContentTooltip = (post.content || '').replace(/"/g, '&quot;');
+
+      html += `
+        <tr>
+          <td class="cell-num">${num}</td>
+          <td class="cell-date">${date}</td>
+          <td class="cell-author">${author}</td>
+          <td class="cell-title" title="${title}">${title}</td>
+          <td class="cell-content" title="${cleanContentTooltip}">${content}</td>
+        </tr>
+      `;
+    });
+
+    adminPostsTableBody.innerHTML = html;
+  }
+
+  /**
+   * 관리자 회원 글 모음 한 문서 다운로드 (.txt 및 .csv)
+   */
+  function initAdminPostsDownload() {
+    if (btnDownloadPostsTxt) {
+      btnDownloadPostsTxt.addEventListener('click', function () {
+        const allPosts = getAllPosts();
+        if (allPosts.length === 0) {
+          alert('다운로드할 회원 글이 없습니다.');
+          return;
+        }
+
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const downloadTime = `${year}-${month}-${day} ${hours}:${minutes}`;
+
+        let docContent = '\uFEFF';
+        docContent += '==================================================\n';
+        docContent += '글 짓는 부엌 - 회원 글 모음\n';
+        docContent += `다운로드 일시: ${downloadTime}\n`;
+        docContent += `총 작성 글 수: ${allPosts.length}편\n`;
+        docContent += '==================================================\n\n';
+
+        allPosts.forEach(function (post, idx) {
+          docContent += `[글 ${idx + 1}]\n`;
+          docContent += `- 작성자: ${post.author || '익명'}\n`;
+          docContent += `- 작성일시: ${post.createdAt || ''}\n`;
+          docContent += `- 제목: ${post.title || '제목 없음'}\n`;
+          docContent += `- 내용:\n${post.content || ''}\n`;
+          docContent += '\n--------------------------------------------------\n\n';
+        });
+
+        const blob = new Blob([docContent], { type: 'text/plain;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `회원_글_모음_${year}-${month}-${day}.txt`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    if (btnDownloadPostsCsv) {
+      btnDownloadPostsCsv.addEventListener('click', function () {
+        const allPosts = getAllPosts();
+        if (allPosts.length === 0) {
+          alert('다운로드할 회원 글이 없습니다.');
+          return;
+        }
+
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+
+        let csvContent = '\uFEFF번호,작성일시,작성자,제목,내용\n';
+
+        allPosts.forEach(function (post, idx) {
+          const num = allPosts.length - idx;
+          const cleanDate = String(post.createdAt || '').replace(/"/g, '""');
+          const cleanAuthor = String(post.author || '').replace(/"/g, '""');
+          const cleanTitle = String(post.title || '').replace(/"/g, '""');
+          const cleanContent = String(post.content || '').replace(/"/g, '""');
+
+          csvContent += `${num},"${cleanDate}","${cleanAuthor}","${cleanTitle}","${cleanContent}"\n`;
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `회원_글_모음_${year}-${month}-${day}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      });
+    }
+  }
+
+  /* ========================================================
+     기기 간 실시간 동기화 (PC · 모바일폰 연동 엔진)
+     ======================================================== */
+  function getCloudUrl() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_CLOUD_URL);
+      return (saved || DEFAULT_CLOUD_URL).trim().replace(/\/+$/, '');
+    } catch (e) {
+      return DEFAULT_CLOUD_URL;
+    }
+  }
+
+  function setCloudUrl(url) {
+    try {
+      if (url && url.trim()) {
+        localStorage.setItem(STORAGE_KEY_CLOUD_URL, url.trim().replace(/\/+$/, ''));
+      } else {
+        localStorage.removeItem(STORAGE_KEY_CLOUD_URL);
+      }
+    } catch (e) {}
+  }
+
+  function setSyncStatus(state, message) {
+    if (syncStatusText) syncStatusText.textContent = message;
+    if (syncIndicatorDot) {
+      if (state === 'syncing') {
+        syncIndicatorDot.className = 'sync-indicator-dot syncing';
+        syncIndicatorDot.style.backgroundColor = '#F39C12';
+      } else if (state === 'error') {
+        syncIndicatorDot.className = 'sync-indicator-dot';
+        syncIndicatorDot.style.backgroundColor = '#E74C3C';
+      } else {
+        syncIndicatorDot.className = 'sync-indicator-dot';
+        syncIndicatorDot.style.backgroundColor = '#27AE60';
+      }
+    }
+  }
+
+  function cloudPushAttendance(record) {
+    const url = getCloudUrl();
+    if (!url) return;
+    try {
+      fetch(`${url}/attendance.json`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(record)
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function cloudSyncAllAttendance(records) {
+    const url = getCloudUrl();
+    if (!url) return;
+    try {
+      fetch(`${url}/attendance.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(records)
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function cloudPushPost(post) {
+    const url = getCloudUrl();
+    if (!url) return;
+    try {
+      fetch(`${url}/posts/${post.id}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(post)
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function cloudDeletePost(postId) {
+    const url = getCloudUrl();
+    if (!url) return;
+    try {
+      fetch(`${url}/posts/${postId}.json`, {
+        method: 'DELETE'
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function cloudSyncAllPosts(posts) {
+    const url = getCloudUrl();
+    if (!url) return;
+    try {
+      const postsObj = {};
+      posts.forEach(p => { postsObj[p.id] = p; });
+      fetch(`${url}/posts.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postsObj)
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  /**
+   * 다른 기기(PC, 모바일폰)에서 등록된 출석과 글을 클라우드에서 가져와 병합
+   */
+  async function fetchAndMergeCloudData(isManual) {
+    const url = getCloudUrl();
+    if (!url) {
+      setSyncStatus('idle', '로컬 저장소 모드 (클라우드 DB 미연결)');
+      return;
+    }
+
+    setSyncStatus('syncing', '다른 기기(PC, 모바일) 데이터 동기화 중...');
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6500);
+
+      const [attRes, postRes] = await Promise.all([
+        fetch(`${url}/attendance.json`, { signal: controller.signal }).catch(() => null),
+        fetch(`${url}/posts.json`, { signal: controller.signal }).catch(() => null)
+      ]);
+      clearTimeout(timeoutId);
+
+      let attUpdated = false;
+      let postUpdated = false;
+
+      // 1. 출석체크 병합
+      if (attRes && attRes.ok) {
+        const attData = await attRes.json();
+        if (attData) {
+          const cloudRecords = Array.isArray(attData) ? attData.filter(Boolean) : Object.values(attData);
+          const localRecords = getAttendanceRecords();
+          const map = new Map();
+
+          localRecords.forEach(r => {
+            if (r && r.date && r.name && r.pin) {
+              map.set(`${r.date}__${r.name}__${r.pin}`, r);
+            }
+          });
+
+          cloudRecords.forEach(r => {
+            if (r && r.date && r.name && r.pin) {
+              const key = `${r.date}__${r.name}__${r.pin}`;
+              if (!map.has(key)) {
+                map.set(key, r);
+                attUpdated = true;
+              } else {
+                const existing = map.get(key);
+                if ((r.count || 0) > (existing.count || 0)) {
+                  map.set(key, r);
+                  attUpdated = true;
+                }
+              }
+            }
+          });
+
+          if (attUpdated) {
+            const mergedAtt = Array.from(map.values());
+            saveAttendanceRecords(mergedAtt);
+          }
+        }
+      }
+
+      // 2. 회원 글 병합
+      if (postRes && postRes.ok) {
+        const postData = await postRes.json();
+        if (postData) {
+          const cloudPosts = Array.isArray(postData) ? postData.filter(Boolean) : Object.values(postData);
+          const localPosts = getAllPosts();
+          const postMap = new Map();
+
+          localPosts.forEach(p => { if (p && p.id) postMap.set(p.id, p); });
+
+          cloudPosts.forEach(p => {
+            if (p && p.id && p.title) {
+              if (!postMap.has(p.id)) {
+                postMap.set(p.id, p);
+                postUpdated = true;
+              }
+            }
+          });
+
+          if (postUpdated) {
+            const mergedPosts = Array.from(postMap.values());
+            mergedPosts.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+            saveAllPosts(mergedPosts);
+          }
+        }
+      }
+
+      if (isAdmin(currentUser)) {
+        renderAdminAttendanceTable();
+        renderAdminPostsTable();
+      }
+
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+      setSyncStatus('success', `다른 기기(PC, 모바일)와 최신 상태로 동기화 완료 (${timeStr})`);
+
+      if (isManual) {
+        alert('다른 기기(PC, 모바일폰)의 최신 출석 및 회원 글과 성공적으로 동기화되었습니다.');
+      }
+    } catch (err) {
+      setSyncStatus('idle', '로컬 저장소 모드 (클라우드 DB 연결 대기 중)');
+      if (isManual) {
+        alert('클라우드 DB와의 연결 상태를 확인해 주세요. [클라우드 DB 설정]에서 Firebase URL을 확인하거나 수동 백업 기능을 이용하실 수 있습니다.');
+      }
+    }
+  }
+
+  function startAdminCloudSync() {
+    if (adminSyncTimer) clearInterval(adminSyncTimer);
+    fetchAndMergeCloudData(false);
+    adminSyncTimer = setInterval(function () {
+      fetchAndMergeCloudData(false);
+    }, 15000);
+  }
+
+  function stopAdminCloudSync() {
+    if (adminSyncTimer) {
+      clearInterval(adminSyncTimer);
+      adminSyncTimer = null;
+    }
+  }
+
   function setAuthState(user) {
     currentUser = user;
     selectedPostId = null;
@@ -330,6 +699,9 @@
     if (user) {
       // 1. 자동 출석체크 수행
       recordAttendance(user);
+
+      // 상단 바 분홍색 전환
+      if (userAuthBar) userAuthBar.classList.add('logged-in');
 
       if (authForm) authForm.style.display = 'none';
       if (authStatus) authStatus.style.display = 'flex';
@@ -340,16 +712,26 @@
 
       renderUserPosts();
 
-      // 2. 관리자(예성원/8797) 로그인 시에만 출석체크 양식 노출
+      // 2. 관리자(예성원/8797) 로그인 시에만 출석체크 및 회원 글 모음 노출
       if (isAdmin(user)) {
         if (adminAttendanceSection) adminAttendanceSection.style.display = 'block';
         if (adminNavItem) adminNavItem.style.display = 'inline-block';
+        if (adminPostsSection) adminPostsSection.style.display = 'block';
+        if (adminPostsNavItem) adminPostsNavItem.style.display = 'inline-block';
         renderAdminAttendanceTable();
+        renderAdminPostsTable();
+        startAdminCloudSync();
       } else {
         if (adminAttendanceSection) adminAttendanceSection.style.display = 'none';
         if (adminNavItem) adminNavItem.style.display = 'none';
+        if (adminPostsSection) adminPostsSection.style.display = 'none';
+        if (adminPostsNavItem) adminPostsNavItem.style.display = 'none';
+        stopAdminCloudSync();
       }
     } else {
+      // 상단 바 원래 색 복원
+      if (userAuthBar) userAuthBar.classList.remove('logged-in');
+
       if (authForm) {
         authForm.style.display = 'flex';
         userNameInput.value = '';
@@ -365,6 +747,9 @@
 
       if (adminAttendanceSection) adminAttendanceSection.style.display = 'none';
       if (adminNavItem) adminNavItem.style.display = 'none';
+      if (adminPostsSection) adminPostsSection.style.display = 'none';
+      if (adminPostsNavItem) adminPostsNavItem.style.display = 'none';
+      stopAdminCloudSync();
     }
   }
 
@@ -567,10 +952,12 @@
           allPosts[postIndex].title = newTitle;
           allPosts[postIndex].content = newContent;
           saveAllPosts(allPosts);
+          cloudPushPost(allPosts[postIndex]);
         }
 
         renderUserPosts();
         renderPostDetail(selectedPostId);
+        if (isAdmin(currentUser)) renderAdminPostsTable();
       });
     }
 
@@ -580,11 +967,14 @@
 
         if (confirm('이 글을 삭제하시겠습니까?')) {
           const allPosts = getAllPosts();
-          const updated = allPosts.filter(function (p) { return p.id !== selectedPostId; });
+          const targetId = selectedPostId;
+          const updated = allPosts.filter(function (p) { return p.id !== targetId; });
           saveAllPosts(updated);
+          cloudDeletePost(targetId);
 
           selectedPostId = null;
           renderUserPosts();
+          if (isAdmin(currentUser)) renderAdminPostsTable();
         }
       });
     }
@@ -639,17 +1029,157 @@
       const allPosts = getAllPosts();
       allPosts.unshift(newPost);
       saveAllPosts(allPosts);
+      cloudPushPost(newPost);
 
       if (postTitleInput) postTitleInput.value = '';
       if (postContentInput) postContentInput.value = '';
 
       selectedPostId = newPost.id;
       renderUserPosts();
+      if (isAdmin(currentUser)) renderAdminPostsTable();
 
       if (postViewCard) {
         postViewCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     });
+  }
+
+  /**
+   * 기기 간 동기화 제어 버튼 및 패널 이벤트 초기화
+   */
+  function initSyncControls() {
+    if (cloudDbUrlInput) {
+      cloudDbUrlInput.value = getCloudUrl();
+    }
+
+    if (btnSyncNow) {
+      btnSyncNow.addEventListener('click', function () {
+        fetchAndMergeCloudData(true);
+      });
+    }
+
+    if (btnSyncSettings) {
+      btnSyncSettings.addEventListener('click', function () {
+        if (!syncSettingsPanel) return;
+        const isHidden = syncSettingsPanel.style.display === 'none';
+        syncSettingsPanel.style.display = isHidden ? 'block' : 'none';
+        if (syncBackupPanel) syncBackupPanel.style.display = 'none';
+      });
+    }
+
+    if (btnSaveSyncUrl) {
+      btnSaveSyncUrl.addEventListener('click', function () {
+        const url = cloudDbUrlInput ? cloudDbUrlInput.value.trim() : '';
+        setCloudUrl(url);
+        alert('클라우드 데이터베이스 주소가 저장되었습니다. 지금 동기화를 시도합니다.');
+        fetchAndMergeCloudData(true);
+      });
+    }
+
+    if (btnResetSyncUrl) {
+      btnResetSyncUrl.addEventListener('click', function () {
+        setCloudUrl(DEFAULT_CLOUD_URL);
+        if (cloudDbUrlInput) cloudDbUrlInput.value = DEFAULT_CLOUD_URL;
+        alert('기본 클라우드 주소로 복원되었습니다.');
+        fetchAndMergeCloudData(true);
+      });
+    }
+
+    if (btnSyncBackup) {
+      btnSyncBackup.addEventListener('click', function () {
+        if (!syncBackupPanel) return;
+        const isHidden = syncBackupPanel.style.display === 'none';
+        syncBackupPanel.style.display = isHidden ? 'block' : 'none';
+        if (syncSettingsPanel) syncSettingsPanel.style.display = 'none';
+      });
+    }
+
+    if (btnExportBackup) {
+      btnExportBackup.addEventListener('click', function () {
+        const backupData = {
+          version: 'senior_kitchen_v2',
+          exportedAt: new Date().toISOString(),
+          attendance: getAttendanceRecords(),
+          posts: getAllPosts()
+        };
+        const jsonStr = JSON.stringify(backupData, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `글짓는부엌_데이터백업_${new Date().toISOString().slice(0, 10)}.json`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    if (inputImportBackup) {
+      inputImportBackup.addEventListener('change', function (e) {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (evt) {
+          try {
+            const data = JSON.parse(evt.target.result);
+            if (!data.attendance && !data.posts) {
+              alert('올바른 백업 파일 형식이 아닙니다.');
+              return;
+            }
+
+            let importedAttCount = 0;
+            let importedPostCount = 0;
+
+            if (Array.isArray(data.attendance)) {
+              const localAtt = getAttendanceRecords();
+              const map = new Map();
+              localAtt.forEach(function (r) { map.set(`${r.date}__${r.name}__${r.pin}`, r); });
+              data.attendance.forEach(function (r) {
+                if (r && r.date && r.name && r.pin) {
+                  const key = `${r.date}__${r.name}__${r.pin}`;
+                  if (!map.has(key) || ((r.count || 0) > (map.get(key).count || 0))) {
+                    map.set(key, r);
+                    importedAttCount++;
+                  }
+                }
+              });
+              const mergedAtt = Array.from(map.values());
+              saveAttendanceRecords(mergedAtt);
+              cloudSyncAllAttendance(mergedAtt);
+            }
+
+            if (Array.isArray(data.posts)) {
+              const localPosts = getAllPosts();
+              const postMap = new Map();
+              localPosts.forEach(function (p) { postMap.set(p.id, p); });
+              data.posts.forEach(function (p) {
+                if (p && p.id && p.title) {
+                  if (!postMap.has(p.id)) {
+                    postMap.set(p.id, p);
+                    importedPostCount++;
+                  }
+                }
+              });
+              const mergedPosts = Array.from(postMap.values());
+              saveAllPosts(mergedPosts);
+              cloudSyncAllPosts(mergedPosts);
+            }
+
+            if (isAdmin(currentUser)) {
+              renderAdminAttendanceTable();
+              renderAdminPostsTable();
+            }
+
+            alert(`데이터 복원이 완료되었습니다.\n- 출석 기록: ${importedAttCount}건 반영\n- 회원 글: ${importedPostCount}편 반영`);
+          } catch (err) {
+            alert('파일을 읽는 중 오류가 발생했습니다: ' + err.message);
+          }
+        };
+        reader.readAsText(file, 'utf-8');
+      });
+    }
   }
 
   /* ========================================================
@@ -678,6 +1208,8 @@
     initWriting();
     initPostViewActions();
     initAttendanceDownload();
+    initAdminPostsDownload();
+    initSyncControls();
     initDictSearch();
   });
 })();
