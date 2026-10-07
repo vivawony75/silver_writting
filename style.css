@@ -41,6 +41,32 @@
   padding: 0;
 }
 
+/* 전역 및 모든 스크롤바 디자인 (폭 16px로 확대 & 짙은 짙은 갈색 스크롤 막대) */
+* {
+  scrollbar-width: auto;
+  scrollbar-color: #381E0D #F3ECE2;
+}
+
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F3ECE2;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #381E0D; /* 짙은 짙은 갈색 */
+  border-radius: 8px;
+  border: 3px solid #F3ECE2;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #221004; /* 더욱 깊은 짙은 다크 브라운 */
+}
+
 html {
   scroll-behavior: smooth;
   font-size: 18px; /* 시니어 기본 기준 폰트 크기 확대 */
@@ -141,31 +167,7 @@ a {
   box-shadow: 0 4px 12px rgba(41, 95, 130, 0.2);
 }
 
-/* 상단 네비게이션 배지 스타일 */
-.nav-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  font-size: 14px;
-  font-weight: 800;
-  border-radius: 8px;
-  margin-right: 6px;
-  vertical-align: middle;
-  background-color: rgba(255, 255, 255, 0.85);
-  color: var(--blue-primary);
-  border: 1px solid var(--blue-border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
 
-.nav-link:hover .nav-badge {
-  background-color: #FFFFFF;
-  color: var(--blue-primary);
-}
-
-.nav-badge.badge-gray {
-  background-color: #555555;
-  color: #FFFFFF;
-  border-color: #444444;
-}
 
 /* ========================================================
    상단 사용자 인증 바 (이름, 비밀번호 숫자 4자리)
@@ -313,62 +315,80 @@ a {
   scroll-margin-top: 100px; /* 헤더 고정 높이 여백 */
 }
 
-.section-title {
-  font-size: 34px;
-  font-weight: 800;
-  color: var(--green-primary);
-  margin-bottom: 28px;
-  position: relative;
-  display: inline-flex;
+/* ========================================================
+   2. 각 섹션 제목 배너 (Title Banner) 디자인
+   ======================================================== */
+.section-title-banner {
+  width: 100%;
+  display: flex;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding-bottom: 12px;
+  justify-content: flex-start;
+  padding: 18px 28px;
+  border-radius: 16px;
+  margin-bottom: 28px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
-.section-title::after {
+/* 배너 왼쪽 리본/장식 바 포인트 */
+.section-title-banner::before {
   content: "";
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, var(--green-primary), var(--blue-primary));
-  border-radius: 2px;
+  width: 8px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.55);
 }
 
-/* 3. 각 메뉴 제목 배지 스타일 */
-.menu-title-badge {
+.section-banner-title {
+  margin: 0;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 6px 18px;
-  font-size: 19px;
+  gap: 14px;
+  font-size: 32px;
   font-weight: 800;
-  border-radius: 999px;
+  color: #FFFFFF;
+  letter-spacing: -0.5px;
   line-height: 1.3;
-  letter-spacing: -0.3px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.badge-green {
-  background-color: var(--green-primary);
+.banner-icon {
+  font-size: 32px;
+  line-height: 1;
+  display: inline-block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+.banner-text {
   color: #FFFFFF;
 }
 
-.badge-blue {
-  background-color: var(--blue-primary);
-  color: #FFFFFF;
+/* 1) 베껴쓰기 배너: 쑥색/자연 녹색 그라데이션 */
+.banner-copywriting {
+  background: linear-gradient(135deg, #2D7A4B 0%, #3B925D 100%);
+  border: 1px solid #24633D;
 }
 
-.badge-teal {
-  background-color: #386E63;
-  color: #FFFFFF;
+/* 2) 글쓰기 배너: 청명한 코발트 블루 그라데이션 */
+.banner-writing {
+  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  border: 1px solid #1D4ED8;
 }
 
-.badge-gray {
-  background-color: #555555;
-  color: #FFFFFF;
+/* 3) 사이트 배너: 세련된 올리브 틸 그라데이션 */
+.banner-sites {
+  background: linear-gradient(135deg, #0F766E 0%, #14B8A6 100%);
+  border: 1px solid #0D9488;
+}
+
+/* 4) 관리자 출석체크 & 회원 글 모음 배너: 차분한 차콜 슬레이트 그라데이션 */
+.banner-attendance,
+.banner-posts {
+  background: linear-gradient(135deg, #334155 0%, #475569 100%);
+  border: 1px solid #1E293B;
 }
 
 /* ========================================================
@@ -380,13 +400,7 @@ a {
   border-bottom: 1px solid #D2D2D2;
 }
 
-.admin-attendance-section .section-title {
-  color: #333333;
-}
 
-.admin-attendance-section .section-title::after {
-  background: #666666;
-}
 
 /* ========================================================
    관리자 기기 간 실시간 동기화 상태 및 제어 (PC, 모바일폰)
@@ -533,7 +547,7 @@ a {
 
 .admin-attendance-section .table-container {
   width: 100%;
-  max-height: 338px; /* 헤더(58px) + 5행(56px * 5 = 280px) = 338px (5줄 초과 시 스크롤) */
+  max-height: 334px; /* 헤더(54px) + 5행(56px * 5 = 280px) = 334px (정확히 5줄 노출 후 초과 시 스크롤) */
   overflow-y: auto;
   overflow-x: auto;
   margin-bottom: 24px;
@@ -543,29 +557,31 @@ a {
 }
 
 .admin-attendance-section .table-container::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 16px;
+  height: 16px;
 }
 
 .admin-attendance-section .table-container::-webkit-scrollbar-track {
-  background: #F0F0F0;
+  background: #F3ECE2;
   border-radius: 8px;
 }
 
 .admin-attendance-section .table-container::-webkit-scrollbar-thumb {
-  background: #B5B5B5;
+  background-color: #381E0D; /* 짙은 짙은 갈색 */
   border-radius: 8px;
+  border: 3px solid #F3ECE2;
 }
 
 .admin-attendance-section .table-container::-webkit-scrollbar-thumb:hover {
-  background: #777777;
+  background-color: #221004;
 }
 
 .attendance-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   text-align: center;
-  font-size: 21px;
+  font-size: 20px;
 }
 
 .attendance-table thead tr {
@@ -575,15 +591,18 @@ a {
 .attendance-table th {
   position: sticky;
   top: 0;
-  z-index: 2;
-  height: 58px;
-  padding: 12px 18px;
+  z-index: 3;
+  height: 54px;
+  padding: 0 16px;
+  line-height: 54px;
   font-weight: 800;
   color: #2B2B2B;
   background-color: #E2E2E2;
   border-bottom: 2px solid #C5C5C5;
   border-right: 1px solid #D0D0D0;
   white-space: nowrap;
+  vertical-align: middle;
+  box-sizing: border-box;
 }
 
 .attendance-table th:last-child {
@@ -592,11 +611,13 @@ a {
 
 .attendance-table td {
   height: 56px;
-  padding: 12px 18px;
+  padding: 0 16px;
+  line-height: 56px;
   border-bottom: 1px solid #E0E0E0;
   border-right: 1px solid #E0E0E0;
   color: #333333;
   white-space: nowrap;
+  vertical-align: middle;
   box-sizing: border-box;
 }
 
@@ -609,27 +630,33 @@ a {
 }
 
 .attendance-table tbody tr:hover {
-  background-color: #F5F5F5;
+  background-color: #F8F8F8;
 }
 
 .btn-row-delete {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   color: #C0392B;
   background-color: #FFFFFF;
   border: 1.5px solid #E6B0AA;
-  padding: 6px 14px;
+  padding: 4px 14px;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  line-height: 1.4;
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-row-delete:hover {
   background-color: #FDEDEC;
   border-color: #C0392B;
-  color: #922B21;
 }
+
+
 
 .attendance-empty-row td {
   padding: 40px 20px;
@@ -661,14 +688,6 @@ a {
   border-bottom: 2px solid #C4C4C4;
 }
 
-.admin-posts-section .section-title {
-  color: #333333;
-}
-
-.admin-posts-section .section-title::after {
-  background: #666666;
-}
-
 .admin-posts-card {
   background-color: #FFFFFF;
   border: 2px solid #C4C4C4;
@@ -679,7 +698,7 @@ a {
 
 .admin-posts-table-container {
   width: 100%;
-  max-height: 338px; /* 헤더(58px) + 5행(56px * 5 = 280px) = 338px (5줄 초과 시 스크롤) */
+  max-height: 334px; /* 헤더(54px) + 5행(56px * 5 = 280px) = 334px (정확히 5줄 노출 후 초과 시 스크롤) */
   overflow-y: auto;
   overflow-x: auto;
   margin-bottom: 24px;
@@ -689,27 +708,29 @@ a {
 }
 
 .admin-posts-table-container::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 16px;
+  height: 16px;
 }
 
 .admin-posts-table-container::-webkit-scrollbar-track {
-  background: #F0F0F0;
+  background: #F3ECE2;
   border-radius: 8px;
 }
 
 .admin-posts-table-container::-webkit-scrollbar-thumb {
-  background: #B5B5B5;
+  background-color: #381E0D; /* 짙은 짙은 갈색 */
   border-radius: 8px;
+  border: 3px solid #F3ECE2;
 }
 
 .admin-posts-table-container::-webkit-scrollbar-thumb:hover {
-  background: #777777;
+  background-color: #221004;
 }
 
 .admin-posts-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 20px;
 }
 
@@ -720,9 +741,10 @@ a {
 .admin-posts-table th {
   position: sticky;
   top: 0;
-  z-index: 2;
-  height: 58px;
-  padding: 12px 16px;
+  z-index: 3;
+  height: 54px;
+  padding: 0 16px;
+  line-height: 54px;
   font-weight: 800;
   color: #2B2B2B;
   background-color: #E2E2E2;
@@ -730,6 +752,8 @@ a {
   border-right: 1px solid #D0D0D0;
   white-space: nowrap;
   text-align: center;
+  vertical-align: middle;
+  box-sizing: border-box;
 }
 
 .admin-posts-table th:last-child {
@@ -738,11 +762,13 @@ a {
 
 .admin-posts-table td {
   height: 56px;
-  padding: 12px 16px;
+  padding: 0 16px;
+  line-height: 56px;
   border-bottom: 1px solid #E0E0E0;
   border-right: 1px solid #E0E0E0;
   color: #333333;
   box-sizing: border-box;
+  vertical-align: middle;
 }
 
 .admin-posts-table td:last-child {
@@ -1012,21 +1038,22 @@ a {
 }
 
 .user-posts-scroll-container::-webkit-scrollbar {
-  width: 10px;
+  width: 16px;
 }
 
 .user-posts-scroll-container::-webkit-scrollbar-track {
-  background: var(--blue-soft);
+  background: #F3ECE2;
   border-radius: 8px;
 }
 
 .user-posts-scroll-container::-webkit-scrollbar-thumb {
-  background: var(--blue-border);
+  background-color: #381E0D; /* 짙은 짙은 갈색 */
   border-radius: 8px;
+  border: 3px solid #F3ECE2;
 }
 
 .user-posts-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: var(--blue-primary);
+  background-color: #221004;
 }
 
 .user-posts-list {
@@ -1424,14 +1451,19 @@ a {
     padding: 40px 0;
   }
 
-  .section-title {
-    font-size: 28px;
+  .section-title-banner {
+    padding: 14px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .section-banner-title {
+    font-size: 25px;
     gap: 10px;
   }
 
-  .menu-title-badge {
-    font-size: 16px;
-    padding: 4px 12px;
+  .banner-icon {
+    font-size: 26px;
   }
 
   .attendance-table {

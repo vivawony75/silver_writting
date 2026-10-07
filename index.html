@@ -16,34 +16,19 @@
       <nav class="header-nav" aria-label="메인 메뉴">
         <ul class="nav-list">
           <li class="nav-item">
-            <a href="#copywriting" class="nav-link">
-              <span class="nav-badge badge-green">필사</span>
-              베껴쓰기
-            </a>
+            <a href="#copywriting" class="nav-link">베껴쓰기</a>
           </li>
           <li class="nav-item">
-            <a href="#writing" class="nav-link">
-              <span class="nav-badge badge-blue">창작</span>
-              글쓰기
-            </a>
+            <a href="#writing" class="nav-link">글쓰기</a>
           </li>
           <li class="nav-item">
-            <a href="#sites" class="nav-link">
-              <span class="nav-badge badge-teal">링크</span>
-              사이트
-            </a>
+            <a href="#sites" class="nav-link">사이트</a>
           </li>
           <li class="nav-item" id="admin-nav-item" style="display: none;">
-            <a href="#admin-attendance" class="nav-link">
-              <span class="nav-badge badge-gray">관리자</span>
-              출석체크
-            </a>
+            <a href="#admin-attendance" class="nav-link">출석체크</a>
           </li>
           <li class="nav-item" id="admin-posts-nav-item" style="display: none;">
-            <a href="#admin-posts" class="nav-link">
-              <span class="nav-badge badge-gray">관리자</span>
-              회원 글 모음
-            </a>
+            <a href="#admin-posts" class="nav-link">회원 글 모음</a>
           </li>
         </ul>
       </nav>
@@ -77,10 +62,12 @@
     <!-- 2. 베껴쓰기 섹션 -->
     <section id="copywriting" class="section copywriting-section">
       <div class="container">
-        <h2 class="section-title">
-          <span class="menu-title-badge badge-green">매일 필사</span>
-          <span>베껴쓰기</span>
-        </h2>
+        <div class="section-title-banner banner-copywriting">
+          <h2 class="section-banner-title">
+            <span class="banner-icon" aria-hidden="true">📖</span>
+            <span class="banner-text">베껴쓰기</span>
+          </h2>
+        </div>
         <div class="copywriting-card">
           <div id="copywriting-date" class="copywriting-date"></div>
           <div id="copywriting-title" class="copywriting-item-title" style="display: none;"></div>
@@ -92,10 +79,12 @@
     <!-- 3. 글쓰기 섹션 -->
     <section id="writing" class="section writing-section">
       <div class="container">
-        <h2 class="section-title">
-          <span class="menu-title-badge badge-blue">마음 나누기</span>
-          <span>글쓰기</span>
-        </h2>
+        <div class="section-title-banner banner-writing">
+          <h2 class="section-banner-title">
+            <span class="banner-icon" aria-hidden="true">✍️</span>
+            <span class="banner-text">글쓰기</span>
+          </h2>
+        </div>
 
         <!-- 미입력 시 안내 화면 -->
         <div id="writing-locked-view" class="card writing-notice-card">
@@ -168,10 +157,12 @@
     <!-- 4. 사이트 섹션 -->
     <section id="sites" class="section sites-section">
       <div class="container">
-        <h2 class="section-title">
-          <span class="menu-title-badge badge-teal">추천 링크</span>
-          <span>사이트</span>
-        </h2>
+        <div class="section-title-banner banner-sites">
+          <h2 class="section-banner-title">
+            <span class="banner-icon" aria-hidden="true">🌐</span>
+            <span class="banner-text">사이트</span>
+          </h2>
+        </div>
 
         <!-- 글쓰기 -->
         <div class="site-category">
@@ -229,10 +220,12 @@
     <!-- 관리자 전용 출석체크 양식 섹션 (관리자 예성원 / 비번 8797 로그인 시에만 노출) -->
     <section id="admin-attendance" class="section admin-attendance-section" style="display: none;">
       <div class="container">
-        <h2 class="section-title">
-          <span class="menu-title-badge badge-gray">관리자 전용</span>
-          <span>출석체크</span>
-        </h2>
+        <div class="section-title-banner banner-attendance">
+          <h2 class="section-banner-title">
+            <span class="banner-icon" aria-hidden="true">📋</span>
+            <span class="banner-text">출석체크</span>
+          </h2>
+        </div>
 
         <!-- 다른 기기(PC, 모바일폰) 실시간 동기화 제어 카드 -->
         <div class="card admin-sync-card">
@@ -273,7 +266,7 @@
         </div>
 
         <div class="card admin-attendance-card">
-          <div class="table-container">
+          <div class="table-container admin-attendance-table-container">
             <table class="attendance-table">
               <thead>
                 <tr>
@@ -297,10 +290,12 @@
     <!-- 관리자 전용 회원 글 모음 섹션 (출석체크 아래 회색 영역, 관리자 로그인 시에만 노출) -->
     <section id="admin-posts" class="section admin-posts-section" style="display: none;">
       <div class="container">
-        <h2 class="section-title">
-          <span class="menu-title-badge badge-gray">관리자 전용</span>
-          <span>회원 글 모음</span>
-        </h2>
+        <div class="section-title-banner banner-posts">
+          <h2 class="section-banner-title">
+            <span class="banner-icon" aria-hidden="true">📚</span>
+            <span class="banner-text">회원 글 모음</span>
+          </h2>
+        </div>
         <div class="card admin-posts-card">
           <div class="table-container admin-posts-table-container">
             <table class="admin-posts-table">
