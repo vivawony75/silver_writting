@@ -47,7 +47,9 @@
   const STORAGE_KEY_USER = 'senior_kitchen_current_user_v2';
   const STORAGE_KEY_ATTENDANCE = 'senior_kitchen_attendance_v2';
   const STORAGE_KEY_CLOUD_URL = 'senior_kitchen_cloud_url_v2';
-  const DEFAULT_CLOUD_URL = 'https://senior-kitchen-default-rtdb.firebaseio.com';
+  const STORAGE_KEY_PHOTOS = 'senior_kitchen_photos_v2';
+  const STORAGE_KEY_QNA = 'senior_kitchen_qna_v2';
+  const DEFAULT_CLOUD_URL = 'https://mywork-f631b-default-rtdb.firebaseio.com';
 
   // 베껴쓰기 DOM 요소
   const dateElement = document.getElementById('copywriting-date');
@@ -110,10 +112,55 @@
   const btnExportBackup = document.getElementById('btn-export-backup');
   const inputImportBackup = document.getElementById('input-import-backup');
 
+  // 사진첩 DOM 요소
+  const photoUploadForm = document.getElementById('photo-upload-form');
+  const photoFileInput = document.getElementById('photo-file-input');
+  const photoFileLabelText = document.getElementById('photo-file-label-text');
+  const photoPreviewBox = document.getElementById('photo-preview-box');
+  const photoPreviewImg = document.getElementById('photo-preview-img');
+  const photoCompressBadge = document.getElementById('photo-compress-badge');
+  const statSizeHighlight = document.getElementById('stat-size-highlight');
+  const statSizeDetail = document.getElementById('stat-size-detail');
+  const photoTitleInput = document.getElementById('photo-title-input');
+  const photoAuthorInput = document.getElementById('photo-author-input');
+  const photoPinInput = document.getElementById('photo-pin-input');
+  const btnSubmitPhoto = document.getElementById('btn-submit-photo');
+  const btnCancelPhoto = document.getElementById('btn-cancel-photo');
+  const photoGalleryGrid = document.getElementById('photo-gallery-grid');
+  const photoGalleryEmpty = document.getElementById('photo-gallery-empty');
+  const photoGalleryCount = document.getElementById('photo-gallery-count');
+  const photoGallerySize = document.getElementById('photo-gallery-size');
+  const photoModal = document.getElementById('photo-modal');
+  const photoModalImg = document.getElementById('photo-modal-img');
+  const photoModalTitle = document.getElementById('photo-modal-title');
+  const photoModalMeta = document.getElementById('photo-modal-meta');
+  const photoModalClose = document.getElementById('photo-modal-close');
+  const photoModalBackdrop = document.getElementById('photo-modal-backdrop');
+
+  // 질문과 답 (Q&A) DOM 요소
+  const qnaForm = document.getElementById('qna-form');
+  const qnaNameInput = document.getElementById('qna-name-input');
+  const qnaPinInput = document.getElementById('qna-pin-input');
+  const qnaTitleInput = document.getElementById('qna-title-input');
+  const qnaContentInput = document.getElementById('qna-content-input');
+  const qnaItemsList = document.getElementById('qna-items-list');
+  const qnaEmptyView = document.getElementById('qna-empty-view');
+  const qnaListCount = document.getElementById('qna-list-count');
+  const qnaAnswerModal = document.getElementById('qna-answer-modal');
+  const qnaAnswerBackdrop = document.getElementById('qna-answer-backdrop');
+  const qnaAnswerClose = document.getElementById('qna-answer-close');
+  const qnaModalQTitle = document.getElementById('qna-modal-q-title');
+  const qnaModalQContent = document.getElementById('qna-modal-q-content');
+  const qnaModalAnswerInput = document.getElementById('qna-modal-answer-input');
+  const btnSaveQnaAnswer = document.getElementById('btn-save-qna-answer');
+  const btnCancelQnaAnswer = document.getElementById('btn-cancel-qna-answer');
+
   let adminSyncTimer = null;
   let lastLoadedDay = null;
   let currentUser = null; // { name: string, pin: string }
   let selectedPostId = null;
+  let currentCompressedPhoto = null; // { dataUrl, width, height, originalBytes, compressedBytes }
+  let answeringQnaId = null; // 현재 관리자가 답변 중인 Q&A ID
 
   /* ========================================================
      1. 베껴쓰기 (0시 자동 갱신)
@@ -476,6 +523,10 @@
   function getCloudUrl() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_CLOUD_URL);
+      if (saved && saved.includes('senior-kitchen-default-rtdb')) {
+        localStorage.setItem(STORAGE_KEY_CLOUD_URL, DEFAULT_CLOUD_URL);
+        return DEFAULT_CLOUD_URL;
+      }
       return (saved || DEFAULT_CLOUD_URL).trim().replace(/\/+$/, '');
     } catch (e) {
       return DEFAULT_CLOUD_URL;
@@ -568,8 +619,84 @@
     } catch (e) {}
   }
 
+  function cloudPushPhoto(photo) {
+    const url = getCloudUrl();
+    if (!url || !photo || !photo.id) return;
+    try {
+      fetch(`${url}/photos/${photo.id}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(photo)
+      }).catch(function (err) {
+        console.warn('사진 클라우드 전송 실패:', err);
+      });
+    } catch (e) {}
+  }
+
+  function cloudDeletePhoto(photoId) {
+    const url = getCloudUrl();
+    if (!url || !photoId) return;
+    try {
+      fetch(`${url}/photos/${photoId}.json`, {
+        method: 'DELETE'
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function cloudSyncAllPhotos(photos) {
+    const url = getCloudUrl();
+    if (!url) return;
+    try {
+      const photosObj = {};
+      photos.forEach(p => { photosObj[p.id] = p; });
+      fetch(`${url}/photos.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(photosObj)
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function cloudPushQna(qnaItem) {
+    const url = getCloudUrl();
+    if (!url || !qnaItem || !qnaItem.id) return;
+    try {
+      fetch(`${url}/qna/${qnaItem.id}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(qnaItem)
+      }).catch(function (err) {
+        console.warn('Q&A 클라우드 전송 실패:', err);
+      });
+    } catch (e) {}
+  }
+
+  function cloudDeleteQna(qnaId) {
+    const url = getCloudUrl();
+    if (!url || !qnaId) return;
+    try {
+      fetch(`${url}/qna/${qnaId}.json`, {
+        method: 'DELETE'
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function cloudSyncAllQna(qnaList) {
+    const url = getCloudUrl();
+    if (!url) return;
+    try {
+      const qnaObj = {};
+      qnaList.forEach(q => { qnaObj[q.id] = q; });
+      fetch(`${url}/qna.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(qnaObj)
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
   /**
-   * 다른 기기(PC, 모바일폰)에서 등록된 출석과 글을 클라우드에서 가져와 병합
+   * 다른 기기(PC, 모바일폰)에서 등록된 출석, 글, 사진, Q&A를 클라우드에서 가져와 병합
    */
   async function fetchAndMergeCloudData(isManual) {
     const url = getCloudUrl();
@@ -584,19 +711,23 @@
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 6500);
 
-      const [attRes, postRes] = await Promise.all([
+      const [attRes, postRes, photoRes, qnaRes] = await Promise.all([
         fetch(`${url}/attendance.json`, { signal: controller.signal }).catch(() => null),
-        fetch(`${url}/posts.json`, { signal: controller.signal }).catch(() => null)
+        fetch(`${url}/posts.json`, { signal: controller.signal }).catch(() => null),
+        fetch(`${url}/photos.json`, { signal: controller.signal }).catch(() => null),
+        fetch(`${url}/qna.json`, { signal: controller.signal }).catch(() => null)
       ]);
       clearTimeout(timeoutId);
 
       let attUpdated = false;
       let postUpdated = false;
+      let photoUpdated = false;
+      let qnaUpdated = false;
 
       // 1. 출석체크 병합
       if (attRes && attRes.ok) {
         const attData = await attRes.json();
-        if (attData) {
+        if (attData && !attData.error) {
           const cloudRecords = Array.isArray(attData) ? attData.filter(Boolean) : Object.values(attData);
           const localRecords = getAttendanceRecords();
           const map = new Map();
@@ -633,7 +764,7 @@
       // 2. 회원 글 병합
       if (postRes && postRes.ok) {
         const postData = await postRes.json();
-        if (postData) {
+        if (postData && !postData.error) {
           const cloudPosts = Array.isArray(postData) ? postData.filter(Boolean) : Object.values(postData);
           const localPosts = getAllPosts();
           const postMap = new Map();
@@ -657,6 +788,69 @@
         }
       }
 
+      // 3. 사진첩 병합
+      if (photoRes && photoRes.ok) {
+        const photoData = await photoRes.json();
+        if (photoData && !photoData.error) {
+          const cloudPhotos = Array.isArray(photoData) ? photoData.filter(Boolean) : Object.values(photoData);
+          const localPhotos = getPhotos();
+          const photoMap = new Map();
+
+          localPhotos.forEach(p => { if (p && p.id) photoMap.set(p.id, p); });
+
+          cloudPhotos.forEach(p => {
+            if (p && p.id && p.imageData) {
+              if (!photoMap.has(p.id)) {
+                photoMap.set(p.id, p);
+                photoUpdated = true;
+              }
+            }
+          });
+
+          if (photoUpdated) {
+            const mergedPhotos = Array.from(photoMap.values());
+            mergedPhotos.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+            savePhotos(mergedPhotos);
+            renderPhotoGallery();
+          }
+        }
+      }
+
+      // 4. 질문과 답 (Q&A) 병합
+      if (qnaRes && qnaRes.ok) {
+        const qnaData = await qnaRes.json();
+        if (qnaData && !qnaData.error) {
+          const cloudQna = Array.isArray(qnaData) ? qnaData.filter(Boolean) : Object.values(qnaData);
+          const localQna = getQnaList();
+          const qnaMap = new Map();
+
+          localQna.forEach(q => { if (q && q.id) qnaMap.set(q.id, q); });
+
+          cloudQna.forEach(q => {
+            if (q && q.id && q.title) {
+              if (!qnaMap.has(q.id)) {
+                qnaMap.set(q.id, q);
+                qnaUpdated = true;
+              } else {
+                const existing = qnaMap.get(q.id);
+                // 클라우드에 답변이 새로 등록/수정되었으면 병합
+                if (q.answer && (!existing.answer || q.answeredAt > existing.answeredAt)) {
+                  qnaMap.set(q.id, q);
+                  qnaUpdated = true;
+                }
+              }
+            }
+          });
+
+          if (qnaUpdated) {
+            const mergedQna = Array.from(qnaMap.values());
+            mergedQna.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+            saveQnaList(mergedQna);
+            renderQnaList();
+          }
+        }
+      }
+
       if (isAdmin(currentUser)) {
         renderAdminAttendanceTable();
         renderAdminPostsTable();
@@ -667,7 +861,7 @@
       setSyncStatus('success', `다른 기기(PC, 모바일)와 최신 상태로 동기화 완료 (${timeStr})`);
 
       if (isManual) {
-        alert('다른 기기(PC, 모바일폰)의 최신 출석 및 회원 글과 성공적으로 동기화되었습니다.');
+        alert('다른 기기(PC, 모바일폰)의 최신 데이터(출석, 글, 사진, Q&A)와 성공적으로 동기화되었습니다.');
       }
     } catch (err) {
       setSyncStatus('idle', '로컬 저장소 모드 (클라우드 DB 연결 대기 중)');
@@ -728,6 +922,14 @@
         if (adminPostsNavItem) adminPostsNavItem.style.display = 'none';
         stopAdminCloudSync();
       }
+
+      // 사진 및 Q&A 작성자/비번 자동 입력
+      if (photoAuthorInput && !photoAuthorInput.value) photoAuthorInput.value = user.name;
+      if (photoPinInput && !photoPinInput.value) photoPinInput.value = user.pin;
+      if (qnaNameInput && !qnaNameInput.value) qnaNameInput.value = user.name;
+      if (qnaPinInput && !qnaPinInput.value) qnaPinInput.value = user.pin;
+      renderPhotoGallery();
+      renderQnaList();
     } else {
       // 상단 바 원래 색 복원
       if (userAuthBar) userAuthBar.classList.remove('logged-in');
@@ -750,6 +952,9 @@
       if (adminPostsSection) adminPostsSection.style.display = 'none';
       if (adminPostsNavItem) adminPostsNavItem.style.display = 'none';
       stopAdminCloudSync();
+
+      renderPhotoGallery();
+      renderQnaList();
     }
   }
 
@@ -1100,7 +1305,9 @@
           version: 'senior_kitchen_v2',
           exportedAt: new Date().toISOString(),
           attendance: getAttendanceRecords(),
-          posts: getAllPosts()
+          posts: getAllPosts(),
+          photos: getPhotos(),
+          qnaList: getQnaList()
         };
         const jsonStr = JSON.stringify(backupData, null, 2);
         const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
@@ -1167,12 +1374,50 @@
               cloudSyncAllPosts(mergedPosts);
             }
 
+            let importedPhotoCount = 0;
+            if (Array.isArray(data.photos)) {
+              const localPhotos = getPhotos();
+              const photoMap = new Map();
+              localPhotos.forEach(function (p) { photoMap.set(p.id, p); });
+              data.photos.forEach(function (p) {
+                if (p && p.id && p.imageData) {
+                  if (!photoMap.has(p.id)) {
+                    photoMap.set(p.id, p);
+                    importedPhotoCount++;
+                  }
+                }
+              });
+              const mergedPhotos = Array.from(photoMap.values());
+              savePhotos(mergedPhotos);
+              cloudSyncAllPhotos(mergedPhotos);
+              renderPhotoGallery();
+            }
+
+            let importedQnaCount = 0;
+            if (Array.isArray(data.qnaList)) {
+              const localQna = getQnaList();
+              const qnaMap = new Map();
+              localQna.forEach(function (q) { qnaMap.set(q.id, q); });
+              data.qnaList.forEach(function (q) {
+                if (q && q.id && q.title) {
+                  if (!qnaMap.has(q.id)) {
+                    qnaMap.set(q.id, q);
+                    importedQnaCount++;
+                  }
+                }
+              });
+              const mergedQna = Array.from(qnaMap.values());
+              saveQnaList(mergedQna);
+              cloudSyncAllQna(mergedQna);
+              renderQnaList();
+            }
+
             if (isAdmin(currentUser)) {
               renderAdminAttendanceTable();
               renderAdminPostsTable();
             }
 
-            alert(`데이터 복원이 완료되었습니다.\n- 출석 기록: ${importedAttCount}건 반영\n- 회원 글: ${importedPostCount}편 반영`);
+            alert(`데이터 복원이 완료되었습니다.\n- 출석 기록: ${importedAttCount}건\n- 회원 글: ${importedPostCount}편\n- 나눔 사진: ${importedPhotoCount}장\n- 질문과 답변: ${importedQnaCount}건`);
           } catch (err) {
             alert('파일을 읽는 중 오류가 발생했습니다: ' + err.message);
           }
@@ -1183,7 +1428,622 @@
   }
 
   /* ========================================================
-     4. 국립국어원 표준국어대사전 검색창 제출 처리
+     4. 사진첩 & 초경량 Canvas 압축 시스템
+     (파이어베이스 1GB 한도 내에서 수만 장 보관 가능하도록 99% 축소)
+     ======================================================== */
+  function formatDateTime(now) {
+    const d = now instanceof Date ? now : new Date(now || Date.now());
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
+  }
+
+  function formatBytes(bytes) {
+    const b = Number(bytes) || 0;
+    if (b < 1024) return b + ' B';
+    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+    return (b / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  /**
+   * 클라이언트 측 스마트 압축:
+   * 1. 해상도를 가로세로 최대 640px로 부드럽게 다운샘플링
+   * 2. WebP 포맷(미지원 시 JPEG) 0.52 품질로 압축
+   * 결과: 5~10MB 스마트폰 원본 사진을 25~40KB 수준으로 99% 축소
+   */
+  function compressImage(file, maxDimension = 640, quality = 0.52) {
+    return new Promise(function (resolve, reject) {
+      if (!file || !file.type.startsWith('image/')) {
+        return reject(new Error('선택한 파일이 이미지 형식이 아닙니다.'));
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, width, height);
+
+          let dataUrl = canvas.toDataURL('image/webp', quality);
+          if (!dataUrl || !dataUrl.startsWith('data:image/webp')) {
+            dataUrl = canvas.toDataURL('image/jpeg', quality);
+          }
+
+          const base64Str = dataUrl.split(',')[1] || '';
+          const compressedBytes = Math.round((base64Str.length * 3) / 4);
+          const originalBytes = file.size;
+
+          resolve({
+            dataUrl: dataUrl,
+            width: width,
+            height: height,
+            originalBytes: originalBytes,
+            compressedBytes: compressedBytes
+          });
+        };
+        img.onerror = function () {
+          reject(new Error('이미지를 불러오지 못했습니다.'));
+        };
+        img.src = e.target.result;
+      };
+      reader.onerror = function () {
+        reject(new Error('파일을 읽지 못했습니다.'));
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function getPhotos() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_PHOTOS);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function savePhotos(photos) {
+    try {
+      localStorage.setItem(STORAGE_KEY_PHOTOS, JSON.stringify(photos));
+    } catch (e) {}
+  }
+
+  function initPhotos() {
+    // 1. 사진 파일 선택 시 즉시 초경량 압축 및 미리보기 생성
+    if (photoFileInput) {
+      photoFileInput.addEventListener('change', async function (e) {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        if (photoFileLabelText) {
+          photoFileLabelText.textContent = `압축 최적화 중... (${file.name})`;
+        }
+
+        try {
+          const result = await compressImage(file, 640, 0.52);
+          currentCompressedPhoto = result;
+
+          if (photoPreviewImg) {
+            photoPreviewImg.src = result.dataUrl;
+          }
+
+          const savedPercent = Math.max(0, ((1 - result.compressedBytes / result.originalBytes) * 100)).toFixed(1);
+          if (statSizeHighlight) {
+            statSizeHighlight.textContent = `⚡ 99% 용량 최적화 성공 (${savedPercent}% 절약)`;
+          }
+          if (statSizeDetail) {
+            statSizeDetail.textContent = `원본 ${formatBytes(result.originalBytes)} → 압축 후 ${formatBytes(result.compressedBytes)} (파이어베이스 1GB 보관 최적화)`;
+          }
+
+          if (photoFileLabelText) {
+            photoFileLabelText.textContent = `사진 변경하기: ${file.name}`;
+          }
+
+          // 로그인 사용자가 있다면 이름/비번 자동 입력
+          if (currentUser) {
+            if (photoAuthorInput && !photoAuthorInput.value) photoAuthorInput.value = currentUser.name;
+            if (photoPinInput && !photoPinInput.value) photoPinInput.value = currentUser.pin;
+          }
+
+          if (photoPreviewBox) {
+            photoPreviewBox.style.display = 'block';
+            photoPreviewBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        } catch (err) {
+          alert('사진을 처리하는 중 오류가 발생했습니다: ' + err.message);
+          if (photoFileLabelText) {
+            photoFileLabelText.textContent = '스마트폰 또는 컴퓨터에서 사진 선택하기';
+          }
+        }
+      });
+    }
+
+    // 2. 취소 버튼
+    if (btnCancelPhoto) {
+      btnCancelPhoto.addEventListener('click', function () {
+        currentCompressedPhoto = null;
+        if (photoFileInput) photoFileInput.value = '';
+        if (photoPreviewImg) photoPreviewImg.src = '';
+        if (photoPreviewBox) photoPreviewBox.style.display = 'none';
+        if (photoFileLabelText) {
+          photoFileLabelText.textContent = '스마트폰 또는 컴퓨터에서 사진 선택하기';
+        }
+      });
+    }
+
+    // 3. 사진 업로드 폼 제출
+    if (photoUploadForm) {
+      photoUploadForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        if (!currentCompressedPhoto || !currentCompressedPhoto.dataUrl) {
+          alert('먼저 올리실 사진을 선택해 주세요.');
+          return;
+        }
+
+        const title = photoTitleInput ? photoTitleInput.value.trim() : '';
+        const author = photoAuthorInput ? photoAuthorInput.value.trim() : '';
+        const pin = photoPinInput ? photoPinInput.value.trim() : '';
+
+        if (!title) {
+          alert('사진 제목이나 설명을 입력해 주세요.');
+          if (photoTitleInput) photoTitleInput.focus();
+          return;
+        }
+
+        if (!author) {
+          alert('올리는 사람의 이름을 입력해 주세요.');
+          if (photoAuthorInput) photoAuthorInput.focus();
+          return;
+        }
+
+        if (!/^\d{4}$/.test(pin)) {
+          alert('사진 삭제 시 사용할 비밀번호(숫자 4자리)를 입력해 주세요.');
+          if (photoPinInput) photoPinInput.focus();
+          return;
+        }
+
+        const newPhoto = {
+          id: 'photo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+          title: title,
+          author: author,
+          pin: pin,
+          createdAt: formatDateTime(new Date()),
+          imageData: currentCompressedPhoto.dataUrl,
+          sizeBytes: currentCompressedPhoto.compressedBytes
+        };
+
+        const photos = getPhotos();
+        photos.unshift(newPhoto);
+        savePhotos(photos);
+        cloudPushPhoto(newPhoto);
+
+        renderPhotoGallery();
+
+        // 폼 초기화
+        currentCompressedPhoto = null;
+        if (photoFileInput) photoFileInput.value = '';
+        if (photoTitleInput) photoTitleInput.value = '';
+        if (photoPreviewBox) photoPreviewBox.style.display = 'none';
+        if (photoFileLabelText) {
+          photoFileLabelText.textContent = '스마트폰 또는 컴퓨터에서 사진 선택하기';
+        }
+
+        alert('사진이 가볍게 최적화되어 파이어베이스에 성공적으로 등록되었습니다!');
+      });
+    }
+
+    // 4. 사진 크게 보기 모달 닫기 이벤트
+    if (photoModalClose) {
+      photoModalClose.addEventListener('click', closePhotoModal);
+    }
+    if (photoModalBackdrop) {
+      photoModalBackdrop.addEventListener('click', closePhotoModal);
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        closePhotoModal();
+        closeQnaAnswerModal();
+      }
+    });
+
+    renderPhotoGallery();
+  }
+
+  function openPhotoModal(photo) {
+    if (!photoModal || !photo) return;
+    if (photoModalImg) photoModalImg.src = photo.imageData;
+    if (photoModalTitle) photoModalTitle.textContent = photo.title || '나눔 사진';
+    if (photoModalMeta) {
+      photoModalMeta.textContent = `올린이: ${photo.author || '익명'} · 등록일: ${photo.createdAt || ''} · 용량: ${formatBytes(photo.sizeBytes || 32000)}`;
+    }
+    photoModal.style.display = 'flex';
+  }
+
+  function closePhotoModal() {
+    if (photoModal) photoModal.style.display = 'none';
+    if (photoModalImg) photoModalImg.src = '';
+  }
+
+  function renderPhotoGallery() {
+    if (!photoGalleryGrid) return;
+
+    const photos = getPhotos();
+
+    // 총 장수 및 서버 용량 통계 업데이트
+    const totalBytes = photos.reduce((acc, p) => acc + (p.sizeBytes || 32000), 0);
+    const quotaPercent = ((totalBytes / (1024 * 1024 * 1024)) * 100).toFixed(3);
+
+    if (photoGalleryCount) {
+      photoGalleryCount.textContent = `총 ${photos.length}장`;
+    }
+    if (photoGallerySize) {
+      photoGallerySize.textContent = `서버 사용량: ${formatBytes(totalBytes)} (1GB 중 ${quotaPercent}% 사용)`;
+    }
+
+    if (photos.length === 0) {
+      photoGalleryGrid.innerHTML = '';
+      if (photoGalleryEmpty) photoGalleryEmpty.style.display = 'block';
+      return;
+    }
+
+    if (photoGalleryEmpty) photoGalleryEmpty.style.display = 'none';
+
+    let html = '';
+    photos.forEach(function (photo) {
+      const id = escapeHtml(photo.id);
+      const title = escapeHtml(photo.title || '나눔 사진');
+      const author = escapeHtml(photo.author || '익명');
+      const date = escapeHtml(photo.createdAt || '');
+      const sizeStr = formatBytes(photo.sizeBytes || 32000);
+
+      html += `
+        <div class="photo-card" data-id="${id}">
+          <div class="photo-card-media" data-id="${id}" title="클릭하면 사진을 크게 볼 수 있습니다">
+            <img src="${photo.imageData}" alt="${title}" loading="lazy">
+            <span class="photo-card-size-tag">⚡ ${sizeStr}</span>
+          </div>
+          <div class="photo-card-body">
+            <h4 class="photo-card-title">${title}</h4>
+            <div class="photo-card-meta">
+              <span class="photo-card-author">${author}</span>
+              <span class="photo-card-date">${date}</span>
+            </div>
+            <div class="photo-card-actions">
+              <button type="button" class="btn-photo-view" data-id="${id}">🔍 크게 보기</button>
+              <button type="button" class="btn-photo-del" data-id="${id}">🗑️ 삭제</button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    photoGalleryGrid.innerHTML = html;
+
+    // 이벤트 리스너 바인딩
+    photoGalleryGrid.querySelectorAll('.photo-card-media, .btn-photo-view').forEach(function (el) {
+      el.addEventListener('click', function () {
+        const id = el.getAttribute('data-id');
+        const photo = photos.find(p => p.id === id);
+        if (photo) openPhotoModal(photo);
+      });
+    });
+
+    photoGalleryGrid.querySelectorAll('.btn-photo-del').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const id = btn.getAttribute('data-id');
+        const photo = photos.find(p => p.id === id);
+        if (!photo) return;
+
+        let canDelete = false;
+        if (isAdmin(currentUser)) {
+          if (confirm(`[관리자 확인] "${photo.title}" 사진을 삭제하시겠습니까?`)) {
+            canDelete = true;
+          }
+        } else {
+          const inputPin = prompt(`"${photo.title}" 사진을 삭제하시려면 등록 시 입력한 비밀번호(숫자 4자리)를 입력해 주세요:`);
+          if (inputPin === null) return;
+          if (inputPin.trim() === String(photo.pin).trim()) {
+            canDelete = true;
+          } else {
+            alert('비밀번호가 일치하지 않습니다.');
+          }
+        }
+
+        if (canDelete) {
+          const updated = photos.filter(p => p.id !== id);
+          savePhotos(updated);
+          cloudDeletePhoto(id);
+          renderPhotoGallery();
+          alert('사진이 삭제되었습니다.');
+        }
+      });
+    });
+  }
+
+  /* ========================================================
+     5. 방문자 질문과 답 (Q&A) 시스템
+     ======================================================== */
+  function getQnaList() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_QNA);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveQnaList(list) {
+    try {
+      localStorage.setItem(STORAGE_KEY_QNA, JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  function initQna() {
+    // 1. 질문 등록 폼 제출
+    if (qnaForm) {
+      qnaForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const name = qnaNameInput ? qnaNameInput.value.trim() : '';
+        const pin = qnaPinInput ? qnaPinInput.value.trim() : '';
+        const title = qnaTitleInput ? qnaTitleInput.value.trim() : '';
+        const content = qnaContentInput ? qnaContentInput.value.trim() : '';
+
+        if (!name) {
+          alert('작성자 이름을 입력해 주세요.');
+          if (qnaNameInput) qnaNameInput.focus();
+          return;
+        }
+
+        if (!/^\d{4}$/.test(pin)) {
+          alert('비밀번호는 숫자 4자리로 입력해 주세요.');
+          if (qnaPinInput) qnaPinInput.focus();
+          return;
+        }
+
+        if (!title) {
+          alert('질문 제목을 입력해 주세요.');
+          if (qnaTitleInput) qnaTitleInput.focus();
+          return;
+        }
+
+        if (!content) {
+          alert('질문 내용을 입력해 주세요.');
+          if (qnaContentInput) qnaContentInput.focus();
+          return;
+        }
+
+        const newQna = {
+          id: 'qna_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+          author: name,
+          pin: pin,
+          title: title,
+          content: content,
+          createdAt: formatDateTime(new Date()),
+          answer: '',
+          answeredAt: '',
+          answeredBy: ''
+        };
+
+        const list = getQnaList();
+        list.unshift(newQna);
+        saveQnaList(list);
+        cloudPushQna(newQna);
+
+        renderQnaList();
+
+        // 폼 초기화 (로그인 사용자는 이름/비번 유지)
+        if (qnaTitleInput) qnaTitleInput.value = '';
+        if (qnaContentInput) qnaContentInput.value = '';
+        if (!currentUser) {
+          if (qnaNameInput) qnaNameInput.value = '';
+          if (qnaPinInput) qnaPinInput.value = '';
+        }
+
+        alert('질문이 성공적으로 등록되었습니다. 관리자가 확인 후 답변을 남겨드립니다.');
+      });
+    }
+
+    // 2. 관리자 답변 모달 저장
+    if (btnSaveQnaAnswer) {
+      btnSaveQnaAnswer.addEventListener('click', function () {
+        if (!answeringQnaId) return;
+
+        const answerText = qnaModalAnswerInput ? qnaModalAnswerInput.value.trim() : '';
+        if (!answerText) {
+          alert('답변 내용을 입력해 주세요.');
+          if (qnaModalAnswerInput) qnaModalAnswerInput.focus();
+          return;
+        }
+
+        const list = getQnaList();
+        const target = list.find(q => q.id === answeringQnaId);
+        if (!target) return;
+
+        target.answer = answerText;
+        target.answeredAt = formatDateTime(new Date());
+        target.answeredBy = (currentUser && currentUser.name) ? currentUser.name : '예성원';
+
+        saveQnaList(list);
+        cloudPushQna(target);
+
+        renderQnaList();
+        closeQnaAnswerModal();
+        alert('관리자 답변이 저장 및 등록되었습니다.');
+      });
+    }
+
+    // 3. 관리자 답변 모달 닫기
+    if (btnCancelQnaAnswer) btnCancelQnaAnswer.addEventListener('click', closeQnaAnswerModal);
+    if (qnaAnswerClose) qnaAnswerClose.addEventListener('click', closeQnaAnswerModal);
+    if (qnaAnswerBackdrop) qnaAnswerBackdrop.addEventListener('click', closeQnaAnswerModal);
+
+    renderQnaList();
+  }
+
+  function openQnaAnswerModal(qnaItem) {
+    if (!qnaAnswerModal || !qnaItem) return;
+    answeringQnaId = qnaItem.id;
+
+    if (qnaModalQTitle) qnaModalQTitle.textContent = qnaItem.title || '질문';
+    if (qnaModalQContent) qnaModalQContent.textContent = qnaItem.content || '';
+    if (qnaModalAnswerInput) qnaModalAnswerInput.value = qnaItem.answer || '';
+
+    qnaAnswerModal.style.display = 'flex';
+    if (qnaModalAnswerInput) qnaModalAnswerInput.focus();
+  }
+
+  function closeQnaAnswerModal() {
+    answeringQnaId = null;
+    if (qnaAnswerModal) qnaAnswerModal.style.display = 'none';
+    if (qnaModalAnswerInput) qnaModalAnswerInput.value = '';
+  }
+
+  function renderQnaList() {
+    if (!qnaItemsList) return;
+
+    const list = getQnaList();
+
+    if (qnaListCount) {
+      qnaListCount.textContent = `총 ${list.length}건`;
+    }
+
+    if (list.length === 0) {
+      qnaItemsList.innerHTML = '';
+      if (qnaEmptyView) qnaEmptyView.style.display = 'block';
+      return;
+    }
+
+    if (qnaEmptyView) qnaEmptyView.style.display = 'none';
+
+    let html = '';
+    list.forEach(function (q) {
+      const id = escapeHtml(q.id);
+      const title = escapeHtml(q.title || '질문');
+      const author = escapeHtml(q.author || '익명');
+      const date = escapeHtml(q.createdAt || '');
+      const content = escapeHtml(q.content || '');
+
+      const hasAnswer = Boolean(q.answer && q.answer.trim());
+      const badgeHtml = hasAnswer
+        ? '<span class="qna-badge badge-answered">✅ 답변 완료</span>'
+        : '<span class="qna-badge badge-pending">⏳ 답변 대기중</span>';
+
+      let answerHtml = '';
+      if (hasAnswer) {
+        const ansAuthor = escapeHtml(q.answeredBy || '예성원');
+        const ansDate = escapeHtml(q.answeredAt || '');
+        const ansText = escapeHtml(q.answer);
+
+        answerHtml = `
+          <div class="qna-answer-box">
+            <div class="qna-answer-header">
+              <span class="qna-answer-author">👑 관리자(${ansAuthor})의 답변</span>
+              <span class="qna-answer-date">${ansDate}</span>
+            </div>
+            <p class="qna-answer-text">${ansText}</p>
+          </div>
+        `;
+      }
+
+      // 관리자 로그인 시 답변 작성/수정 버튼 표시
+      let adminActionHtml = '';
+      if (isAdmin(currentUser)) {
+        adminActionHtml = `
+          <div class="qna-admin-action-row">
+            <button type="button" class="btn-qna-answer" data-id="${id}">
+              ${hasAnswer ? '✏️ 답변 수정' : '💬 답변 달기'}
+            </button>
+          </div>
+        `;
+      }
+
+      html += `
+        <div class="qna-card" data-id="${id}">
+          <div class="qna-header-top">
+            ${badgeHtml}
+            <div class="qna-meta-info">
+              <span class="qna-author">${author}</span>
+              <span class="qna-date">${date}</span>
+              <button type="button" class="btn-qna-del" data-id="${id}">삭제</button>
+            </div>
+          </div>
+          <h4 class="qna-question-title">${title}</h4>
+          <p class="qna-question-body">${content}</p>
+          ${answerHtml}
+          ${adminActionHtml}
+        </div>
+      `;
+    });
+
+    qnaItemsList.innerHTML = html;
+
+    // 관리자 답변 모달 버튼 이벤트
+    qnaItemsList.querySelectorAll('.btn-qna-answer').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const id = btn.getAttribute('data-id');
+        const item = list.find(q => q.id === id);
+        if (item) openQnaAnswerModal(item);
+      });
+    });
+
+    // 질문 삭제 버튼 이벤트
+    qnaItemsList.querySelectorAll('.btn-qna-del').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const id = btn.getAttribute('data-id');
+        const item = list.find(q => q.id === id);
+        if (!item) return;
+
+        let canDelete = false;
+        if (isAdmin(currentUser)) {
+          if (confirm(`[관리자 확인] "${item.title}" 질문을 삭제하시겠습니까?`)) {
+            canDelete = true;
+          }
+        } else {
+          const inputPin = prompt(`"${item.title}" 질문을 삭제하시려면 등록 시 입력한 비밀번호(숫자 4자리)를 입력해 주세요:`);
+          if (inputPin === null) return;
+          if (inputPin.trim() === String(item.pin).trim()) {
+            canDelete = true;
+          } else {
+            alert('비밀번호가 일치하지 않습니다.');
+          }
+        }
+
+        if (canDelete) {
+          const updated = list.filter(q => q.id !== id);
+          saveQnaList(updated);
+          cloudDeleteQna(id);
+          renderQnaList();
+          alert('질문이 삭제되었습니다.');
+        }
+      });
+    });
+  }
+
+  /* ========================================================
+     6. 국립국어원 표준국어대사전 검색창 제출 처리
      ======================================================== */
   function initDictSearch() {
     const dictForm = document.querySelector('.dict-search-form');
@@ -1207,9 +2067,13 @@
     initAuth();
     initWriting();
     initPostViewActions();
+    initPhotos();
+    initQna();
     initAttendanceDownload();
     initAdminPostsDownload();
     initSyncControls();
     initDictSearch();
+    // 페이지 로드 시 파이어베이스 실시간 데이터 동기화 시도 (백그라운드)
+    fetchAndMergeCloudData(false);
   });
 })();
