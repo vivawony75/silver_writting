@@ -524,8 +524,197 @@ a {
 .sync-panel-actions {
   display: flex;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
+}
+
+.btn-test-firebase {
+  background-color: #16A085;
+  color: #FFFFFF;
+  border: 2px solid #138D75;
+  font-weight: 700;
+}
+
+.btn-test-firebase:hover {
+  background-color: #117A65;
+  border-color: #0E6655;
+}
+
+.btn-upload-all {
+  background-color: #E67E22;
+  color: #FFFFFF;
+  border: 2px solid #D35400;
+  font-weight: 700;
+}
+
+.btn-upload-all:hover {
+  background-color: #D35400;
+  border-color: #BA4A00;
+}
+
+/* 파이어베이스 실시간 진단 상태 박스 */
+.firebase-diagnosis-box {
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  border: 2px solid #BDC3C7;
+  background-color: #F8F9F9;
+  color: #34495E;
+  transition: all 0.3s ease;
+}
+
+.firebase-diagnosis-box.checking {
+  border-color: #3498DB;
+  background-color: #EBF5FB;
+  color: #2980B9;
+}
+
+.firebase-diagnosis-box.locked {
+  border-color: #E74C3C;
+  background-color: #FDEDEC;
+  color: #C0392B;
+}
+
+.firebase-diagnosis-box.success {
+  border-color: #27AE60;
+  background-color: #E8F8F5;
+  color: #1E8449;
+}
+
+/* 파이어베이스 30초 연동 및 규칙 가이드 카드 */
+.firebase-guide-card {
+  margin-top: 18px;
+  padding: 22px 24px;
+  background-color: #FAF8F5;
+  border: 2px solid #DFD5C6;
+  border-radius: 16px;
+}
+
+.guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.guide-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #2C3E50;
+}
+
+.guide-badge {
+  background-color: #E74C3C;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 12px;
+  letter-spacing: 0.5px;
+}
+
+.guide-desc {
+  font-size: 17px;
+  color: #555555;
+  line-height: 1.65;
+  margin-bottom: 18px;
+}
+
+.guide-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.guide-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  background-color: #FFFFFF;
+  border: 1.5px solid #E6DED4;
+  border-radius: 12px;
+}
+
+.step-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--blue-primary);
+  color: #FFFFFF;
+  font-size: 18px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.step-content {
+  font-size: 17px;
+  color: #333333;
+  line-height: 1.65;
+  flex: 1;
+}
+
+.btn-external-link {
+  display: inline-block;
+  margin-top: 8px;
+  background-color: #2980B9;
+  color: #FFFFFF !important;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.btn-external-link:hover {
+  background-color: #1F618D;
+}
+
+.code-copy-wrapper {
+  position: relative;
+  margin-top: 10px;
+  background-color: #2C3E50;
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+
+.code-block {
+  margin: 0;
+  color: #2ECC71;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+.btn-copy-code {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background-color: #34495E;
+  color: #FFFFFF;
+  border: 1px solid #7F8C8D;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-copy-code:hover {
+  background-color: #1ABC9C;
+  border-color: #16A085;
 }
 
 .sync-help-text {

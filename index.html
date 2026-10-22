@@ -395,22 +395,79 @@
               <span class="sync-status-text" id="sync-status-text">다른 기기(PC, 모바일) 실시간 연동 대기 중</span>
             </div>
             <div class="admin-sync-actions">
+              <button type="button" id="btn-test-firebase" class="btn-action btn-test-firebase">🧪 파이어베이스 연결 진단</button>
               <button type="button" id="btn-sync-now" class="btn-action btn-sync">🔄 지금 동기화 새로고침</button>
-              <button type="button" id="btn-sync-settings" class="btn-action btn-cancel">⚙️ 클라우드 DB 설정</button>
+              <button type="button" id="btn-sync-settings" class="btn-action btn-cancel">⚙️ 파이어베이스 설정 / 연동 가이드</button>
               <button type="button" id="btn-sync-backup" class="btn-action btn-cancel">💾 백업/복원</button>
             </div>
           </div>
           <!-- 클라우드 DB 설정 패널 -->
           <div id="sync-settings-panel" class="sync-settings-panel" style="display: none;">
+            <div id="firebase-diagnosis-box" class="firebase-diagnosis-box">
+              🔍 [파이어베이스 연결 진단] 버튼을 누르면 실시간 데이터베이스(RTDB) 연결 및 보안 규칙 상태를 확인합니다.
+            </div>
+
             <div class="sync-input-group">
               <label for="cloud-db-url-input" class="sync-label">클라우드 데이터베이스 URL (Firebase Realtime DB):</label>
               <input type="url" id="cloud-db-url-input" class="sync-input" placeholder="https://mywork-f631b-default-rtdb.firebaseio.com">
             </div>
             <div class="sync-panel-actions">
+              <button type="button" id="btn-test-firebase-panel" class="btn-action btn-test-firebase">🧪 지금 연결 상태 진단하기</button>
+              <button type="button" id="btn-upload-all-cloud" class="btn-action btn-upload-all">☁️ 브라우저 데이터를 파이어베이스로 전체 전송</button>
               <button type="button" id="btn-save-sync-url" class="btn-action btn-save">주소 저장 및 즉시 연결</button>
               <button type="button" id="btn-reset-sync-url" class="btn-action btn-cancel">기본값 복원</button>
             </div>
-            <p class="sync-help-text">※ 다른 기기(스마트폰, 다른 PC)와 실시간 연동하려면 Google Firebase 무료 Realtime Database 주소를 입력하면 자동으로 모든 기기의 출석과 글이 합쳐집니다.</p>
+            <p class="sync-help-text">※ 다른 기기(스마트폰, 다른 PC)와 실시간 연동하려면 Google Firebase 무료 Realtime Database 주소를 입력하면 자동으로 모든 기기의 출석, 글, 사진, 질문이 실시간으로 합쳐집니다.</p>
+
+            <!-- 파이어베이스 30초 연동 및 규칙 가이드 -->
+            <div class="firebase-guide-card">
+              <div class="guide-header">
+                <span class="guide-title">📌 구글 파이어베이스 100% 실시간 연동을 위한 [규칙] 설정 가이드</span>
+                <span class="guide-badge">필수 1회</span>
+              </div>
+              <p class="guide-desc">
+                구글 파이어베이스는 새 데이터베이스 생성 시 보안을 위해 외부 읽기/쓰기가 잠겨(Permission Denied) 있습니다.<br>
+                아래 4단계를 따라 규칙을 <strong>true</strong>로 변경해 주셔야 스마트폰과 PC 간에 사진, 출석, 글, 질문이 실시간으로 저장되고 관리자 화면에 즉시 나타납니다.
+              </p>
+              <div class="guide-steps">
+                <div class="guide-step-item">
+                  <div class="step-num">1</div>
+                  <div class="step-content">
+                    <strong>파이어베이스 콘솔 [규칙(Rules)] 페이지 열기:</strong><br>
+                    <a href="https://console.firebase.google.com/u/0/project/mywork-f631b/database/mywork-f631b-default-rtdb/rules" target="_blank" rel="noopener noreferrer" class="btn-external-link">
+                      🔗 내 파이어베이스 콘솔 규칙(Rules) 설정 바로가기 ↗
+                    </a>
+                  </div>
+                </div>
+                <div class="guide-step-item">
+                  <div class="step-num">2</div>
+                  <div class="step-content">
+                    <strong>규칙 입력창의 기존 내용을 지우고 아래 5줄 코드로 교체:</strong>
+                    <div class="code-copy-wrapper">
+                      <pre class="code-block"><code id="code-rules-json">{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}</code></pre>
+                      <button type="button" id="btn-copy-rules-code" class="btn-action btn-copy-code">📋 규칙 코드 복사</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="guide-step-item">
+                  <div class="step-num">3</div>
+                  <div class="step-content">
+                    <strong>파이어베이스 화면 우측 상단의 파란색 [게시 (Publish)] 버튼 누르기</strong>
+                  </div>
+                </div>
+                <div class="guide-step-item">
+                  <div class="step-num">4</div>
+                  <div class="step-content">
+                    <strong>위의 [🧪 지금 연결 상태 진단하기] 버튼을 누르면 즉시 초록색으로 연동 성공이 확인되며 모든 데이터가 실시간으로 동기화됩니다!</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <!-- 기기 간 수동 백업/복원 패널 -->
           <div id="sync-backup-panel" class="sync-backup-panel" style="display: none;">

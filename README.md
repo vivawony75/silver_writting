@@ -74,25 +74,32 @@
 
 ---
 
-## 3. 파이어베이스(Firebase) 실시간 데이터베이스 & Vercel 배포
+## 3. 파이어베이스(Firebase) 실시간 데이터베이스 연동 & Vercel 배포
 
 1. **파이어베이스 프로젝트 정보**:
-   - 데이터베이스 주소: `https://mywork-f631b-default-rtdb.firebaseio.com`
-   - 콘솔 주소: `https://console.firebase.google.com/u/0/project/mywork-f631b/database/mywork-f631b-default-rtdb/data`
+   - 데이터베이스 실시간 주소: `https://mywork-f631b-default-rtdb.firebaseio.com`
+   - 데이터 콘솔 주소: `https://console.firebase.google.com/u/0/project/mywork-f631b/database/mywork-f631b-default-rtdb/data`
+   - 보안 규칙 설정 주소: `https://console.firebase.google.com/u/0/project/mywork-f631b/database/mywork-f631b-default-rtdb/rules`
 
-2. **파이어베이스 보안 규칙(Rules) 설정 방법**:
-   - Vercel 및 일반 웹 브라우저에서 출석, 글, 사진, Q&A를 자유롭게 읽고 쓸 수 있도록 파이어베이스 콘솔의 **[규칙(Rules)]** 탭에서 아래와 같이 설정하고 **[게시(Publish)]** 버튼을 눌러주세요:
-   ```json
-   {
-     "rules": {
-       ".read": true,
-       ".write": true
-     }
-   }
-   ```
+2. **파이어베이스 실시간 연동 방법 (30초 완료 - 1회만 수행)**:
+   - 구글 파이어베이스는 기본 생성 시 보안상 읽기/쓰기가 잠겨(Permission Denied) 있어 데이터가 저장되지 않습니다.
+   - 관리자(`예성원` / `8797`)로 로그인 후 [출석체크] 영역의 **[⚙️ 파이어베이스 설정 / 연동 가이드]** 또는 아래 단계를 진행합니다:
+     1. [파이어베이스 콘솔 규칙 페이지](https://console.firebase.google.com/u/0/project/mywork-f631b/database/mywork-f631b-default-rtdb/rules)를 엽니다.
+     2. 입력창의 내용을 지우고 아래 코드를 붙여넣습니다:
+        ```json
+        {
+          "rules": {
+            ".read": true,
+            ".write": true
+          }
+        }
+        ```
+     3. 오른쪽 상단의 파란색 **[게시 (Publish)]** 버튼을 누릅니다.
+     4. 웹사이트의 **[🧪 파이어베이스 연결 진단]** 버튼을 누르면 즉시 초록색으로 100% 정상 연동이 확인됩니다!
+     5. 기존에 작성한 출석/글/사진을 파이어베이스로 바로 올리려면 **[☁️ 브라우저 데이터를 파이어베이스로 전체 전송]**을 누르면 파이어베이스 콘솔에 즉시 모든 트리가 생성됩니다.
 
 3. **Vercel 배포**:
-   - Vercel에 코드를 업로드하면 별도의 백엔드 서버 없이도 브라우저가 파이어베이스 REST API를 통해 실시간으로 데이터를 주고받습니다.
+   - Vercel에 코드를 업로드하면 정적 호스팅 환경에서도 브라우저가 파이어베이스 Realtime Database REST API를 통해 스마트폰과 PC 간에 실시간으로 출석, 글, 사진, 질문을 동기화합니다.
 
 ---
 

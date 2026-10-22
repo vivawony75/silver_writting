@@ -102,6 +102,11 @@
   const syncIndicatorDot = document.getElementById('sync-indicator-dot');
   const syncStatusText = document.getElementById('sync-status-text');
   const btnSyncNow = document.getElementById('btn-sync-now');
+  const btnTestFirebase = document.getElementById('btn-test-firebase');
+  const btnTestFirebasePanel = document.getElementById('btn-test-firebase-panel');
+  const btnUploadAllCloud = document.getElementById('btn-upload-all-cloud');
+  const firebaseDiagnosisBox = document.getElementById('firebase-diagnosis-box');
+  const btnCopyRulesCode = document.getElementById('btn-copy-rules-code');
   const btnSyncSettings = document.getElementById('btn-sync-settings');
   const btnSyncBackup = document.getElementById('btn-sync-backup');
   const syncSettingsPanel = document.getElementById('sync-settings-panel');
@@ -549,13 +554,191 @@
       if (state === 'syncing') {
         syncIndicatorDot.className = 'sync-indicator-dot syncing';
         syncIndicatorDot.style.backgroundColor = '#F39C12';
-      } else if (state === 'error') {
+      } else if (state === 'error' || state === 'locked') {
         syncIndicatorDot.className = 'sync-indicator-dot';
         syncIndicatorDot.style.backgroundColor = '#E74C3C';
+      } else if (state === 'warning') {
+        syncIndicatorDot.className = 'sync-indicator-dot';
+        syncIndicatorDot.style.backgroundColor = '#E67E22';
+      } else if (state === 'idle') {
+        syncIndicatorDot.className = 'sync-indicator-dot';
+        syncIndicatorDot.style.backgroundColor = '#95A5A6';
       } else {
         syncIndicatorDot.className = 'sync-indicator-dot';
         syncIndicatorDot.style.backgroundColor = '#27AE60';
       }
+    }
+  }
+
+  /**
+   * 구글 파이어베이스 실시간 데이터베이스(RTDB) 연결 및 보안 규칙 진단
+   */
+  async function testFirebaseConnection(silent) {
+    const url = getCloudUrl();
+    if (!url) {
+      if (firebaseDiagnosisBox) {
+        firebaseDiagnosisBox.className = 'firebase-diagnosis-box locked';
+        firebaseDiagnosisBox.textContent = '❌ 클라우드 데이터베이스 URL이 설정되어 있지 않습니다.';
+      }
+      setSyncStatus('error', '클라우드 DB URL 미설정');
+      return { ok: false, reason: 'no_url' };
+    }
+
+    if (firebaseDiagnosisBox) {
+      firebaseDiagnosisBox.className = 'firebase-diagnosis-box checking';
+      firebaseDiagnosisBox.textContent = '🔍 구글 파이어베이스 서버 연결 및 보안 규칙 상태 확인 중...';
+    }
+    setSyncStatus('syncing', '파이어베이스 연결 진단 중...');
+
+    try {
+      // 1. 읽기 테스트
+      const readRes = await fetch(`${url}/attendance.json?shallow=true`, { method: 'GET' }).catch(err => {
+        throw new Error('네트워크 연결 불가: ' + (err.message || '인터넷 연결을 확인해 주세요.'));
+      });
+
+      if (readRes.status === 401 || readRes.status === 403) {
+        if (firebaseDiagnosisBox) {
+          firebaseDiagnosisBox.className = 'firebase-diagnosis-box locked';
+          firebaseDiagnosisBox.innerHTML = '⚠️ <strong>보안 규칙 잠김 (401 Permission Denied)</strong>: 파이어베이스 서버는 정상 응답했으나, 데이터베이스 [보안 규칙]이 잠겨 있어 읽기/쓰기가 차단되었습니다.<br>아래 <strong>[규칙 가이드]</strong> 1~3단계를 따라 Firebase 콘솔에서 규칙을 <code>true</code>로 변경한 후 <strong>[게시]</strong>를 눌러주세요.';
+        }
+        setSyncStatus('error', '⚠️ 파이어베이스 규칙 잠김 (401 Permission Denied) - 가이드 참조');
+        if (!silent) {
+          if (syncSettingsPanel) syncSettingsPanel.style.display = 'block';
+          alert('⚠️ [파이어베이스 보안 규칙 잠김 (401 Permission Denied)]\n\n파이어베이스 서버와 정상 연결되었으나, 데이터베이스 [보안 규칙]이 잠겨 있어 데이터를 읽거나 쓸 수 없습니다.\n\n화면에 표시된 [규칙 설정 가이드] 1~3단계를 따라 콘솔에서 .read와 .write를 true로 설정하고 [게시]를 눌러주세요.');
+        }
+        return { ok: false, reason: 'permission_denied' };
+      }
+
+      if (!readRes.ok) {
+        const msg = `⚠️ 파이어베이스 서버 응답 오류 (HTTP ${readRes.status})`;
+        if (firebaseDiagnosisBox) {
+          firebaseDiagnosisBox.className = 'firebase-diagnosis-box locked';
+          firebaseDiagnosisBox.textContent = msg;
+        }
+        setSyncStatus('error', msg);
+        if (!silent) alert(msg);
+        return { ok: false, reason: 'http_error', status: readRes.status };
+      }
+
+      // 2. 쓰기 테스트
+      const pingKey = `ping_${Date.now()}`;
+      const pingRes = await fetch(`${url}/connection_check/${pingKey}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'ok', time: new Date().toISOString() })
+      }).catch(() => null);
+
+      if (pingRes && (pingRes.status === 401 || pingRes.status === 403)) {
+        if (firebaseDiagnosisBox) {
+          firebaseDiagnosisBox.className = 'firebase-diagnosis-box locked';
+          firebaseDiagnosisBox.innerHTML = '⚠️ <strong>쓰기 규칙 잠김</strong>: 읽기는 가능하나 데이터 쓰기 권한이 없습니다. Firebase 콘솔에서 <code>.write: true</code> 규칙을 적용해 주세요.';
+        }
+        setSyncStatus('error', '⚠️ 파이어베이스 쓰기 규칙 잠김');
+        if (!silent) alert('⚠️ 파이어베이스 쓰기 규칙이 잠겨 있습니다. .write를 true로 설정해 주세요.');
+        return { ok: false, reason: 'write_locked' };
+      }
+
+      if (pingRes && pingRes.ok) {
+        fetch(`${url}/connection_check/${pingKey}.json`, { method: 'DELETE' }).catch(() => {});
+      }
+
+      // 성공!
+      if (firebaseDiagnosisBox) {
+        firebaseDiagnosisBox.className = 'firebase-diagnosis-box success';
+        firebaseDiagnosisBox.innerHTML = '✅ <strong>파이어베이스 실시간 연동 성공!</strong> 구글 데이터베이스와 정상적으로 양방향 통신 중입니다. PC와 모바일의 모든 데이터(출석, 글, 사진, 질문)가 실시간으로 안전하게 공유됩니다.';
+      }
+      setSyncStatus('success', '🟢 파이어베이스 실시간 연동 정상 (PC·모바일 동기화 중)');
+      if (!silent) {
+        alert('🎉 구글 파이어베이스 실시간 데이터베이스(RTDB)와 100% 정상 연동되었습니다!\n\n이제 PC와 스마트폰 등 모든 기기에서 사진, 출석, 글, Q&A가 실시간으로 공유됩니다.');
+      }
+      return { ok: true };
+    } catch (err) {
+      const errMsg = `❌ 파이어베이스 서버 연결 실패: ${err.message || '인터넷 연결을 확인해 주세요.'}`;
+      if (firebaseDiagnosisBox) {
+        firebaseDiagnosisBox.className = 'firebase-diagnosis-box locked';
+        firebaseDiagnosisBox.textContent = errMsg;
+      }
+      setSyncStatus('error', '파이어베이스 서버 연결 실패');
+      if (!silent) alert(errMsg);
+      return { ok: false, reason: 'network_error', error: err };
+    }
+  }
+
+  /**
+   * 브라우저(localStorage)에 보관된 모든 데이터를 파이어베이스 클라우드로 일괄 전송
+   */
+  async function uploadAllLocalDataToFirebase() {
+    const url = getCloudUrl();
+    if (!url) {
+      alert('클라우드 DB URL이 설정되지 않았습니다.');
+      return;
+    }
+
+    if (!confirm('현재 브라우저에 저장된 모든 데이터(출석체크, 회원 글, 사진첩, Q&A)를 파이어베이스 클라우드로 일괄 전송하시겠습니까?\n\n파이어베이스 콘솔에서 즉시 모든 데이터 트리가 생성됩니다.')) {
+      return;
+    }
+
+    setSyncStatus('syncing', '브라우저 데이터 파이어베이스로 전체 업로드 중...');
+
+    try {
+      const attRecords = getAttendanceRecords();
+      const allPosts = getAllPosts();
+      const photos = getPhotos();
+      const qnaList = getQnaList();
+
+      const postsObj = {};
+      allPosts.forEach(p => { if (p && p.id) postsObj[p.id] = p; });
+
+      const photosObj = {};
+      photos.forEach(p => { if (p && p.id) photosObj[p.id] = p; });
+
+      const qnaObj = {};
+      qnaList.forEach(q => { if (q && q.id) qnaObj[q.id] = q; });
+
+      const [attRes, postRes, photoRes, qnaRes] = await Promise.all([
+        fetch(`${url}/attendance.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(attRecords)
+        }).catch(err => ({ ok: false, status: 0, err })),
+        fetch(`${url}/posts.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(postsObj)
+        }).catch(err => ({ ok: false, status: 0, err })),
+        fetch(`${url}/photos.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(photosObj)
+        }).catch(err => ({ ok: false, status: 0, err })),
+        fetch(`${url}/qna.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(qnaObj)
+        }).catch(err => ({ ok: false, status: 0, err }))
+      ]);
+
+      const any401 = [attRes, postRes, photoRes, qnaRes].some(r => r && (r.status === 401 || r.status === 403));
+      if (any401) {
+        setSyncStatus('error', '⚠️ 파이어베이스 규칙 잠김 (401 Permission Denied)');
+        if (firebaseDiagnosisBox) {
+          firebaseDiagnosisBox.className = 'firebase-diagnosis-box locked';
+          firebaseDiagnosisBox.innerHTML = '⚠️ <strong>보안 규칙 잠김 (401 Permission Denied)</strong>: 파이어베이스 실시간 데이터베이스 보안 규칙이 잠겨 있어 전송할 수 없습니다. 콘솔에서 <code>.read: true, .write: true</code> 로 변경해 주세요.';
+        }
+        if (syncSettingsPanel) syncSettingsPanel.style.display = 'block';
+        alert('⚠️ [전송 실패: 파이어베이스 규칙 잠김]\n\n파이어베이스 실시간 데이터베이스 보안 규칙이 잠겨 있어 전송이 거부되었습니다. (401 Permission Denied)\n\n화면의 [규칙 가이드]를 참고하여 Firebase 콘솔 [규칙] 탭에서 .read와 .write를 true로 설정하고 [게시]를 눌러주세요.');
+        return;
+      }
+
+      setSyncStatus('success', '🟢 브라우저 데이터 파이어베이스 업로드 완료');
+      if (firebaseDiagnosisBox) {
+        firebaseDiagnosisBox.className = 'firebase-diagnosis-box success';
+        firebaseDiagnosisBox.innerHTML = '✅ <strong>전체 데이터 업로드 완료!</strong> 출석체크, 회원 글, 사진첩, Q&A가 파이어베이스에 성공적으로 저장되었습니다.';
+      }
+      alert(`🎉 파이어베이스 업로드 성공!\n\n- 출석 기록: ${attRecords.length}건\n- 회원 글: ${allPosts.length}편\n- 사진첩: ${photos.length}장\n- 질문과 답: ${qnaList.length}건\n\n파이어베이스 콘솔 화면을 새로고침하시면 위 데이터가 실시간으로 반영된 것을 확인하실 수 있습니다.`);
+    } catch (err) {
+      alert('업로드 중 오류가 발생했습니다: ' + err.message);
+      setSyncStatus('error', '업로드 오류');
     }
   }
 
@@ -567,7 +750,14 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(record)
-      }).catch(function () {});
+      }).then(res => {
+        if (res.status === 401 || res.status === 403) {
+          console.warn('파이어베이스 규칙 잠김: 출석 전송 거부됨(401)');
+          setSyncStatus('error', '⚠️ 파이어베이스 규칙 잠김 (401 Permission Denied)');
+        }
+      }).catch(function (err) {
+        console.warn('출석 클라우드 전송 실패:', err);
+      });
     } catch (e) {}
   }
 
@@ -579,6 +769,10 @@
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(records)
+      }).then(res => {
+        if (res.status === 401 || res.status === 403) {
+          setSyncStatus('error', '⚠️ 파이어베이스 규칙 잠김 (401 Permission Denied)');
+        }
       }).catch(function () {});
     } catch (e) {}
   }
@@ -591,6 +785,11 @@
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(post)
+      }).then(res => {
+        if (res.status === 401 || res.status === 403) {
+          console.warn('파이어베이스 규칙 잠김: 글 전송 거부됨(401)');
+          setSyncStatus('error', '⚠️ 파이어베이스 규칙 잠김 (401 Permission Denied)');
+        }
       }).catch(function () {});
     } catch (e) {}
   }
@@ -615,6 +814,10 @@
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(postsObj)
+      }).then(res => {
+        if (res.status === 401 || res.status === 403) {
+          setSyncStatus('error', '⚠️ 파이어베이스 규칙 잠김 (401 Permission Denied)');
+        }
       }).catch(function () {});
     } catch (e) {}
   }
@@ -627,6 +830,11 @@
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(photo)
+      }).then(res => {
+        if (res.status === 401 || res.status === 403) {
+          console.warn('파이어베이스 규칙 잠김: 사진 전송 거부됨(401)');
+          setSyncStatus('error', '⚠️ 파이어베이스 규칙 잠김 (401 Permission Denied)');
+        }
       }).catch(function (err) {
         console.warn('사진 클라우드 전송 실패:', err);
       });
@@ -653,6 +861,10 @@
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(photosObj)
+      }).then(res => {
+        if (res.status === 401 || res.status === 403) {
+          setSyncStatus('error', '⚠️ 파이어베이스 규칙 잠김 (401 Permission Denied)');
+        }
       }).catch(function () {});
     } catch (e) {}
   }
@@ -665,6 +877,11 @@
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(qnaItem)
+      }).then(res => {
+        if (res.status === 401 || res.status === 403) {
+          console.warn('파이어베이스 규칙 잠김: Q&A 전송 거부됨(401)');
+          setSyncStatus('error', '⚠️ 파이어베이스 규칙 잠김 (401 Permission Denied)');
+        }
       }).catch(function (err) {
         console.warn('Q&A 클라우드 전송 실패:', err);
       });
@@ -691,6 +908,10 @@
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(qnaObj)
+      }).then(res => {
+        if (res.status === 401 || res.status === 403) {
+          setSyncStatus('error', '⚠️ 파이어베이스 규칙 잠김 (401 Permission Denied)');
+        }
       }).catch(function () {});
     } catch (e) {}
   }
@@ -718,6 +939,23 @@
         fetch(`${url}/qna.json`, { signal: controller.signal }).catch(() => null)
       ]);
       clearTimeout(timeoutId);
+
+      // 401/403 권한 거부(보안 규칙 잠김) 감지
+      const responses = [attRes, postRes, photoRes, qnaRes];
+      const isPermissionDenied = responses.some(r => r && (r.status === 401 || r.status === 403));
+
+      if (isPermissionDenied) {
+        setSyncStatus('error', '⚠️ 파이어베이스 규칙 잠김 (401 Permission Denied) - 설정 가이드 참조');
+        if (firebaseDiagnosisBox) {
+          firebaseDiagnosisBox.className = 'firebase-diagnosis-box locked';
+          firebaseDiagnosisBox.innerHTML = '⚠️ <strong>보안 규칙 잠김 (401 Permission Denied)</strong>: 파이어베이스 서버는 정상 응답하였으나 데이터베이스 [보안 규칙]이 잠겨 있습니다.<br>아래 <strong>[규칙 가이드]</strong>에 따라 Firebase 콘솔 [규칙] 탭에서 <code>.read: true, .write: true</code> 로 설정하고 [게시]를 눌러주세요.';
+        }
+        if (isManual) {
+          if (syncSettingsPanel) syncSettingsPanel.style.display = 'block';
+          alert('⚠️ [파이어베이스 보안 규칙 잠김 (401 Permission Denied)]\n\n파이어베이스 실시간 데이터베이스의 보안 규칙이 잠겨 있어 다른 기기의 데이터를 가져오거나 저장할 수 없습니다.\n\n[파이어베이스 설정 / 연동 가이드]의 안내에 따라 Firebase 콘솔 [규칙(Rules)] 페이지에서 읽기/쓰기를 true로 변경하고 [게시]를 눌러주세요.');
+        }
+        return;
+      }
 
       let attUpdated = false;
       let postUpdated = false;
@@ -873,6 +1111,7 @@
 
   function startAdminCloudSync() {
     if (adminSyncTimer) clearInterval(adminSyncTimer);
+    testFirebaseConnection(true); // 관리자 화면 진입 시 파이어베이스 실시간 상태 점검
     fetchAndMergeCloudData(false);
     adminSyncTimer = setInterval(function () {
       fetchAndMergeCloudData(false);
@@ -1260,6 +1499,60 @@
     if (btnSyncNow) {
       btnSyncNow.addEventListener('click', function () {
         fetchAndMergeCloudData(true);
+      });
+    }
+
+    if (btnTestFirebase) {
+      btnTestFirebase.addEventListener('click', function () {
+        testFirebaseConnection(false);
+      });
+    }
+
+    if (btnTestFirebasePanel) {
+      btnTestFirebasePanel.addEventListener('click', function () {
+        testFirebaseConnection(false);
+      });
+    }
+
+    if (btnUploadAllCloud) {
+      btnUploadAllCloud.addEventListener('click', function () {
+        uploadAllLocalDataToFirebase();
+      });
+    }
+
+    if (btnCopyRulesCode) {
+      btnCopyRulesCode.addEventListener('click', function () {
+        const code = `{\n  "rules": {\n    ".read": true,\n    ".write": true\n  }\n}`;
+        function showCopied() {
+          btnCopyRulesCode.textContent = '✅ 복사 완료!';
+          setTimeout(function () {
+            btnCopyRulesCode.textContent = '📋 규칙 코드 복사';
+          }, 2500);
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(code).then(showCopied).catch(function () {
+            copyFallback(code);
+          });
+        } else {
+          copyFallback(code);
+        }
+
+        function copyFallback(text) {
+          try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showCopied();
+          } catch (e) {
+            alert('아래 코드를 복사하여 Firebase 콘솔 규칙에 붙여넣으세요:\n\n' + text);
+          }
+        }
       });
     }
 
