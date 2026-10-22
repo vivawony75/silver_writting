@@ -69,14 +69,15 @@
 
 html {
   scroll-behavior: smooth;
-  font-size: 18px; /* 시니어 기본 기준 폰트 크기 확대 */
+  font-size: 12pt;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
+  font-size: 12pt;
   background-color: var(--bg-page);
   color: var(--text-main);
-  line-height: 1.85;
+  line-height: 1.7;
   word-break: keep-all;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -122,7 +123,7 @@ a {
 
 .header-title a {
   font-family: 'a시네마M', 'aCinemaM', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
-  font-size: 38px; /* 기존 32px에서 시원하게 확대 */
+  font-size: 28pt; /* 상단 메인 로고 28pt */
   font-weight: 800;
   color: var(--green-primary);
   letter-spacing: -0.5px;
@@ -147,8 +148,8 @@ a {
 
 .nav-link {
   display: inline-block;
-  padding: 12px 22px;
-  font-size: 21px;
+  padding: 10px 18px;
+  font-size: 14pt; /* 메뉴 제목 14pt */
   font-weight: 700;
   color: var(--blue-primary);
   background-color: var(--blue-soft);
@@ -221,16 +222,16 @@ a {
 }
 
 .auth-label {
-  font-size: 20px;
+  font-size: 14pt;
   font-weight: 700;
   color: var(--text-main);
   white-space: nowrap;
 }
 
 .auth-input {
-  height: 52px;
-  padding: 8px 18px;
-  font-size: 20px;
+  height: 44px;
+  padding: 6px 16px;
+  font-size: 12pt;
   font-family: inherit;
   color: var(--text-main);
   background-color: #FFFFFF;
@@ -252,9 +253,9 @@ a {
 }
 
 .auth-btn {
-  height: 52px;
-  padding: 0 26px;
-  font-size: 20px;
+  height: 44px;
+  padding: 0 22px;
+  font-size: 12pt;
   font-weight: 700;
   color: #FFFFFF;
   background-color: var(--green-primary);
@@ -279,15 +280,15 @@ a {
 }
 
 .auth-user-text {
-  font-size: 21px;
+  font-size: 12pt;
   font-weight: 800;
   color: var(--green-primary);
 }
 
 .auth-logout-btn {
-  height: 48px;
-  padding: 0 20px;
-  font-size: 19px;
+  height: 42px;
+  padding: 0 18px;
+  font-size: 12pt;
   font-weight: 700;
   color: var(--text-muted);
   background-color: #FFFFFF;
@@ -316,16 +317,16 @@ a {
 }
 
 /* ========================================================
-   2. 각 섹션 제목 배너 (Title Banner) 디자인
+   2. 각 섹션 제목 배너 (Title Banner) 디자인 (14pt)
    ======================================================== */
 .section-title-banner {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 18px 28px;
+  padding: 16px 24px;
   border-radius: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   position: relative;
   overflow: hidden;
@@ -347,8 +348,8 @@ a {
   margin: 0;
   display: inline-flex;
   align-items: center;
-  gap: 14px;
-  font-size: 32px;
+  gap: 12px;
+  font-size: 14pt; /* 각 섹션 제목 배너 14pt */
   font-weight: 800;
   color: #FFFFFF;
   letter-spacing: -0.5px;
@@ -356,7 +357,7 @@ a {
 }
 
 .banner-icon {
-  font-size: 32px;
+  font-size: 14pt;
   line-height: 1;
   display: inline-block;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
@@ -464,7 +465,7 @@ a {
 }
 
 .sync-status-text {
-  font-size: 19px;
+  font-size: 12pt;
   font-weight: 700;
   color: #333333;
 }
@@ -480,6 +481,7 @@ a {
   background-color: var(--blue-primary);
   color: #FFFFFF;
   border: 2px solid var(--blue-primary);
+  font-size: 12pt;
 }
 
 .btn-sync:hover {
@@ -502,16 +504,16 @@ a {
 }
 
 .sync-label {
-  font-size: 18px;
+  font-size: 14pt;
   font-weight: 700;
   color: #444444;
 }
 
 .sync-input {
   width: 100%;
-  height: 50px;
-  padding: 10px 16px;
-  font-size: 18px;
+  height: 44px;
+  padding: 6px 14px;
+  font-size: 12pt;
   border: 2px solid #D0D0D0;
   border-radius: 10px;
   outline: none;
@@ -532,6 +534,7 @@ a {
   background-color: #16A085;
   color: #FFFFFF;
   border: 2px solid #138D75;
+  font-size: 12pt;
   font-weight: 700;
 }
 
@@ -544,6 +547,7 @@ a {
   background-color: #E67E22;
   color: #FFFFFF;
   border: 2px solid #D35400;
+  font-size: 12pt;
   font-weight: 700;
 }
 
@@ -554,9 +558,9 @@ a {
 
 /* 파이어베이스 실시간 진단 상태 박스 */
 .firebase-diagnosis-box {
-  padding: 16px 20px;
+  padding: 14px 18px;
   border-radius: 12px;
-  font-size: 17px;
+  font-size: 12pt;
   font-weight: 700;
   line-height: 1.6;
   margin-bottom: 16px;
@@ -587,7 +591,7 @@ a {
 /* 파이어베이스 30초 연동 및 규칙 가이드 카드 */
 .firebase-guide-card {
   margin-top: 18px;
-  padding: 22px 24px;
+  padding: 20px 22px;
   background-color: #FAF8F5;
   border: 2px solid #DFD5C6;
   border-radius: 16px;
@@ -603,7 +607,7 @@ a {
 }
 
 .guide-title {
-  font-size: 20px;
+  font-size: 14pt;
   font-weight: 800;
   color: #2C3E50;
 }
@@ -611,7 +615,7 @@ a {
 .guide-badge {
   background-color: #E74C3C;
   color: #FFFFFF;
-  font-size: 14px;
+  font-size: 12pt;
   font-weight: 700;
   padding: 4px 12px;
   border-radius: 12px;
@@ -619,7 +623,7 @@ a {
 }
 
 .guide-desc {
-  font-size: 17px;
+  font-size: 12pt;
   color: #555555;
   line-height: 1.65;
   margin-bottom: 18px;
@@ -635,19 +639,19 @@ a {
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  padding: 16px 18px;
+  padding: 14px 16px;
   background-color: #FFFFFF;
   border: 1.5px solid #E6DED4;
   border-radius: 12px;
 }
 
 .step-num {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background-color: var(--blue-primary);
   color: #FFFFFF;
-  font-size: 18px;
+  font-size: 12pt;
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -657,7 +661,7 @@ a {
 }
 
 .step-content {
-  font-size: 17px;
+  font-size: 12pt;
   color: #333333;
   line-height: 1.65;
   flex: 1;
@@ -670,8 +674,8 @@ a {
   color: #FFFFFF !important;
   text-decoration: none;
   font-weight: 700;
-  font-size: 16px;
-  padding: 10px 18px;
+  font-size: 12pt;
+  padding: 8px 16px;
   border-radius: 10px;
   transition: background-color 0.2s ease;
 }
@@ -685,14 +689,14 @@ a {
   margin-top: 10px;
   background-color: #2C3E50;
   border-radius: 10px;
-  padding: 14px 18px;
+  padding: 12px 16px;
 }
 
 .code-block {
   margin: 0;
   color: #2ECC71;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 16px;
+  font-size: 12pt;
   line-height: 1.5;
   overflow-x: auto;
 }
@@ -705,8 +709,12 @@ a {
   color: #FFFFFF;
   border: 1px solid #7F8C8D;
   border-radius: 8px;
-  padding: 6px 14px;
-  font-size: 14px;
+  padding: 5px 12px;
+  font-size: 12pt;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
   font-weight: 700;
   cursor: pointer;
   transition: background-color 0.2s ease;
@@ -718,7 +726,7 @@ a {
 }
 
 .sync-help-text {
-  font-size: 16px;
+  font-size: 12pt;
   color: #666666;
   line-height: 1.6;
   margin: 0;
@@ -782,7 +790,7 @@ a {
   border-collapse: separate;
   border-spacing: 0;
   text-align: center;
-  font-size: 20px;
+  font-size: 12pt;
 }
 
 .attendance-table thead tr {
@@ -793,9 +801,10 @@ a {
   position: sticky;
   top: 0;
   z-index: 3;
-  height: 54px;
+  height: 50px;
   padding: 0 16px;
-  line-height: 54px;
+  line-height: 50px;
+  font-size: 14pt; /* 테이블 헤더 제목 14pt */
   font-weight: 800;
   color: #2B2B2B;
   background-color: #E2E2E2;
@@ -811,9 +820,10 @@ a {
 }
 
 .attendance-table td {
-  height: 56px;
+  height: 50px;
   padding: 0 16px;
-  line-height: 56px;
+  line-height: 50px;
+  font-size: 12pt; /* 테이블 본문 내용 12pt */
   border-bottom: 1px solid #E0E0E0;
   border-right: 1px solid #E0E0E0;
   color: #333333;
@@ -835,12 +845,12 @@ a {
 }
 
 .btn-row-delete {
-  font-size: 16px;
+  font-size: 12pt;
   font-weight: 700;
   color: #C0392B;
   background-color: #FFFFFF;
   border: 1.5px solid #E6B0AA;
-  padding: 4px 14px;
+  padding: 4px 12px;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -932,7 +942,7 @@ a {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 20px;
+  font-size: 12pt;
 }
 
 .admin-posts-table thead tr {
@@ -943,9 +953,10 @@ a {
   position: sticky;
   top: 0;
   z-index: 3;
-  height: 54px;
+  height: 50px;
   padding: 0 16px;
-  line-height: 54px;
+  line-height: 50px;
+  font-size: 14pt; /* 테이블 헤더 제목 14pt */
   font-weight: 800;
   color: #2B2B2B;
   background-color: #E2E2E2;
@@ -962,9 +973,10 @@ a {
 }
 
 .admin-posts-table td {
-  height: 56px;
+  height: 50px;
   padding: 0 16px;
-  line-height: 56px;
+  line-height: 50px;
+  font-size: 12pt; /* 테이블 본문 내용 12pt */
   border-bottom: 1px solid #E0E0E0;
   border-right: 1px solid #E0E0E0;
   color: #333333;
@@ -1068,34 +1080,34 @@ a {
 
 .copywriting-date {
   display: inline-block;
-  font-size: 24px;
+  font-size: 12pt;
   font-weight: 700;
   color: var(--blue-primary);
   background-color: var(--blue-soft);
   border: 1.5px solid var(--blue-border);
-  padding: 8px 22px;
+  padding: 6px 18px;
   border-radius: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .copywriting-item-title {
-  font-size: 28px;
+  font-size: 14pt; /* 각 제목 14pt */
   font-weight: 800;
   color: var(--blue-primary);
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   line-height: 1.5;
 }
 
 .copywriting-content {
-  font-size: 26px;
-  line-height: 2.2;
+  font-size: 12pt; /* 본문 내용 12pt */
+  line-height: 1.9;
   font-weight: 500;
   color: var(--text-main);
   background-color: #FBFCFA;
   border-left: 6px solid var(--blue-primary);
-  padding: 32px 36px;
+  padding: 24px 28px;
   border-radius: 8px 16px 16px 8px;
-  min-height: 140px;
+  min-height: 120px;
   white-space: pre-wrap;
   margin-bottom: 0;
 }
@@ -1113,44 +1125,44 @@ a {
   background-color: var(--bg-card);
   border: 2px dashed var(--green-border);
   border-radius: var(--radius-card);
-  padding: 44px 32px;
+  padding: 36px 28px;
   text-align: center;
   box-shadow: var(--shadow-card);
 }
 
 .writing-notice-text {
-  font-size: 24px;
+  font-size: 12pt;
   font-weight: 700;
   color: var(--text-muted);
-  line-height: 1.8;
+  line-height: 1.7;
 }
 
 .writing-form-card {
   background-color: var(--bg-card);
   border: 2px solid var(--green-border);
   border-radius: var(--radius-card);
-  padding: 36px 32px;
+  padding: 32px 28px;
   box-shadow: var(--shadow-card);
-  margin-bottom: 40px;
+  margin-bottom: 36px;
 }
 
 .post-form .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .form-label {
   display: block;
-  font-size: 22px;
+  font-size: 14pt; /* 입력란 제목 14pt */
   font-weight: 700;
   color: var(--text-main);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .post-title-input {
   width: 100%;
-  height: 58px;
-  padding: 12px 20px;
-  font-size: 22px;
+  height: 48px;
+  padding: 10px 16px;
+  font-size: 12pt; /* 직접 입력하는 내용 12pt */
   font-family: inherit;
   color: var(--text-main);
   background-color: #FAFCFA;
@@ -1168,10 +1180,10 @@ a {
 
 .post-textarea {
   width: 100%;
-  min-height: 180px;
-  padding: 20px 22px;
-  font-size: 22px;
-  line-height: 1.9;
+  min-height: 160px;
+  padding: 16px 18px;
+  font-size: 12pt; /* 직접 입력하는 내용 12pt */
+  line-height: 1.8;
   font-family: inherit;
   color: var(--text-main);
   background-color: #FAFCFA;
@@ -1192,9 +1204,9 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 64px;
-  padding: 16px 40px;
-  font-size: 24px;
+  min-height: 48px;
+  padding: 12px 32px;
+  font-size: 12pt;
   font-weight: 800;
   color: #FFFFFF;
   background-color: var(--green-primary);
@@ -1221,16 +1233,16 @@ a {
 }
 
 .user-posts-heading {
-  font-size: 28px;
+  font-size: 14pt; /* 제목 14pt */
   font-weight: 800;
   color: var(--text-main);
-  margin-bottom: 22px;
+  margin-bottom: 20px;
   padding-left: 12px;
   border-left: 5px solid var(--blue-primary);
 }
 
 .user-posts-scroll-container {
-  max-height: 320px; /* 64px * 5줄 = 320px (5줄 초과 시 스크롤) */
+  max-height: 280px; /* 56px * 5줄 = 280px (5줄 초과 시 스크롤) */
   overflow-y: auto;
   border: 2px solid var(--blue-border);
   border-radius: var(--radius-card);
@@ -1264,11 +1276,11 @@ a {
 }
 
 .user-post-item {
-  height: 64px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 20px;
   border-bottom: 1.5px solid var(--border-light);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1288,7 +1300,7 @@ a {
 }
 
 .user-post-item-title {
-  font-size: 22px;
+  font-size: 12pt; /* 목록 본문 12pt */
   font-weight: 700;
   color: var(--text-main);
   overflow: hidden;
@@ -1303,15 +1315,15 @@ a {
 }
 
 .user-post-item-date {
-  font-size: 18px;
+  font-size: 12pt;
   color: var(--text-muted);
   white-space: nowrap;
 }
 
 .user-empty-posts {
-  padding: 40px 24px;
+  padding: 36px 20px;
   text-align: center;
-  font-size: 22px;
+  font-size: 12pt;
   color: var(--text-muted);
 }
 
@@ -1322,7 +1334,7 @@ a {
   background-color: var(--bg-card);
   border: 2.5px solid var(--blue-border);
   border-radius: var(--radius-card);
-  padding: 36px 36px;
+  padding: 32px 32px;
   box-shadow: var(--shadow-card);
   margin-top: 28px;
 }
@@ -1331,13 +1343,13 @@ a {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 24px;
-  padding-bottom: 18px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
   border-bottom: 2px solid var(--border-light);
 }
 
 .post-view-title {
-  font-size: 28px;
+  font-size: 14pt; /* 지난 글 제목 14pt */
   font-weight: 800;
   color: var(--blue-primary);
   line-height: 1.4;
@@ -1353,7 +1365,7 @@ a {
 }
 
 .post-view-date {
-  font-size: 19px;
+  font-size: 12pt;
   font-weight: 600;
   color: var(--text-muted);
 }
@@ -1366,9 +1378,9 @@ a {
 }
 
 .btn-action {
-  height: 48px;
-  padding: 0 24px;
-  font-size: 19px;
+  height: 42px;
+  padding: 0 20px;
+  font-size: 12pt;
   font-weight: 700;
   font-family: inherit;
   border-radius: 12px;
@@ -1422,11 +1434,11 @@ a {
 }
 
 .post-view-body {
-  font-size: 24px;
-  line-height: 2.1;
+  font-size: 12pt; /* 지난 글 본문 12pt */
+  line-height: 1.9;
   color: var(--text-main);
   white-space: pre-wrap;
-  min-height: 100px;
+  min-height: 80px;
 }
 
 /* ========================================================
@@ -1445,7 +1457,7 @@ a {
 }
 
 .category-title {
-  font-size: 26px;
+  font-size: 14pt; /* 카테고리 제목 14pt */
   font-weight: 800;
   color: var(--text-main);
   margin-bottom: 18px;
@@ -1471,7 +1483,7 @@ a {
 }
 
 .dict-link-url {
-  font-size: 19px;
+  font-size: 12pt;
   color: var(--text-muted);
   word-break: break-all;
   display: inline-block;
@@ -1492,9 +1504,9 @@ a {
 
 .dict-search-input {
   flex: 1;
-  min-height: 64px;
-  padding: 14px 24px;
-  font-size: 22px;
+  min-height: 48px;
+  padding: 8px 18px;
+  font-size: 12pt; /* 직접 입력하는 내용 12pt */
   font-family: inherit;
   color: var(--text-main);
   background-color: #FAFCFA;
@@ -1520,9 +1532,9 @@ a {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 64px;
-  padding: 0 32px;
-  font-size: 22px;
+  min-height: 48px;
+  padding: 0 24px;
+  font-size: 12pt;
   font-weight: 800;
   font-family: inherit;
   color: #FFFFFF;
@@ -1559,7 +1571,7 @@ a {
   background-color: var(--bg-card);
   border: 2px solid var(--green-border);
   border-radius: var(--radius-card);
-  padding: 24px 28px;
+  padding: 20px 24px;
   box-shadow: var(--shadow-card);
   transition: all 0.25s ease;
 }
@@ -1579,13 +1591,13 @@ a {
 }
 
 .site-name {
-  font-size: 24px;
+  font-size: 14pt; /* 사이트 제목 14pt */
   font-weight: 700;
   color: var(--text-main);
 }
 
 .site-url {
-  font-size: 19px;
+  font-size: 12pt; /* URL 및 본문 12pt */
   color: var(--text-muted);
   word-break: break-all;
 }
@@ -1610,12 +1622,12 @@ a {
 .footer {
   background-color: #EBF0EC;
   border-top: 2px solid var(--border-light);
-  padding: 36px 0;
+  padding: 32px 0;
   text-align: center;
 }
 
 .footer-title {
-  font-size: 22px;
+  font-size: 14pt;
   font-weight: 700;
   color: var(--text-muted);
 }
@@ -1625,7 +1637,7 @@ a {
    ======================================================== */
 @media (max-width: 680px) {
   html {
-    font-size: 17px;
+    font-size: 12pt;
   }
 
   .header-container {
@@ -1634,7 +1646,7 @@ a {
   }
 
   .header-title a {
-    font-size: 32px;
+    font-size: 24pt;
   }
 
   .nav-list {
@@ -1644,73 +1656,78 @@ a {
   }
 
   .nav-link {
-    font-size: 19px;
-    padding: 10px 18px;
+    font-size: 14pt;
+    padding: 8px 14px;
   }
 
   .section {
-    padding: 40px 0;
+    padding: 36px 0;
   }
 
   .section-title-banner {
-    padding: 14px 20px;
+    padding: 12px 18px;
     border-radius: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
 
   .section-banner-title {
-    font-size: 25px;
-    gap: 10px;
+    font-size: 14pt;
+    gap: 8px;
   }
 
   .banner-icon {
-    font-size: 26px;
+    font-size: 14pt;
   }
 
   .attendance-table {
-    font-size: 17px;
+    font-size: 12pt;
   }
 
-  .attendance-table th,
+  .attendance-table th {
+    font-size: 14pt;
+    padding: 10px 12px;
+  }
+
   .attendance-table td {
-    padding: 12px 14px;
+    font-size: 12pt;
+    padding: 10px 12px;
   }
 
   .admin-attendance-card {
-    padding: 24px 18px;
+    padding: 20px 16px;
   }
 
   .copywriting-card {
-    padding: 28px 20px;
+    padding: 24px 18px;
   }
 
   .copywriting-date {
-    font-size: 20px;
+    font-size: 12pt;
   }
 
   .copywriting-content {
-    font-size: 22px;
-    padding: 20px;
+    font-size: 12pt;
+    padding: 18px;
   }
 
   .copywriting-item-title {
-    font-size: 24px;
+    font-size: 14pt;
   }
 
   .site-link {
-    padding: 20px 20px;
+    padding: 16px 18px;
   }
 
   .site-name {
-    font-size: 21px;
+    font-size: 14pt;
   }
 
   .site-url {
-    font-size: 16px;
+    font-size: 12pt;
   }
 
   .dict-card {
-    padding: 24px 20px;
+    padding: 20px 18px;
   }
 
   .dict-search-form {
@@ -1718,14 +1735,14 @@ a {
   }
 
   .dict-search-input {
-    min-height: 58px;
-    font-size: 19px;
+    min-height: 48px;
+    font-size: 12pt;
   }
 
   .dict-search-button {
-    min-height: 58px;
+    min-height: 48px;
     width: 100%;
-    font-size: 20px;
+    font-size: 12pt;
   }
 
   .auth-form {
@@ -1744,12 +1761,14 @@ a {
 
   .auth-input {
     width: 100% !important;
-    height: 50px;
+    height: 44px;
+    font-size: 12pt;
   }
 
   .auth-btn {
     width: 100%;
-    height: 52px;
+    height: 44px;
+    font-size: 12pt;
   }
 
   .auth-status {
@@ -1758,57 +1777,62 @@ a {
   }
 
   .post-title-input {
-    height: 52px;
-    font-size: 20px;
+    height: 44px;
+    font-size: 12pt;
   }
 
   .post-textarea {
-    font-size: 20px;
-    padding: 16px;
+    font-size: 12pt;
+    padding: 14px;
   }
 
   .btn-post-submit {
     width: 100%;
-    font-size: 22px;
-    min-height: 58px;
+    font-size: 12pt;
+    min-height: 48px;
   }
 
   .user-post-item {
-    height: 58px;
-    padding: 0 16px;
+    height: 52px;
+    padding: 0 14px;
   }
 
   .user-post-item-title {
-    font-size: 19px;
+    font-size: 12pt;
   }
 
   .user-post-item-date {
-    font-size: 16px;
+    font-size: 12pt;
   }
 
   .post-view-card {
-    padding: 24px 18px;
+    padding: 20px 16px;
   }
 
   .post-view-title {
-    font-size: 24px;
+    font-size: 14pt;
   }
 
   .post-view-body {
-    font-size: 20px;
+    font-size: 12pt;
   }
 
   .admin-posts-card {
-    padding: 24px 18px;
+    padding: 20px 16px;
   }
 
   .admin-posts-table {
-    font-size: 17px;
+    font-size: 12pt;
   }
 
-  .admin-posts-table th,
+  .admin-posts-table th {
+    font-size: 14pt;
+    padding: 10px 8px;
+  }
+
   .admin-posts-table td {
-    padding: 12px 10px;
+    font-size: 12pt;
+    padding: 10px 8px;
   }
 
   .admin-posts-actions {
@@ -1877,14 +1901,14 @@ a {
 }
 
 .photo-upload-title {
-  font-size: 26px;
+  font-size: 14pt; /* 제목 14pt */
   font-weight: 800;
   color: #B45309;
   margin-bottom: 8px;
 }
 
 .photo-upload-desc {
-  font-size: 19px;
+  font-size: 12pt; /* 본문 12pt */
   color: var(--text-muted);
   line-height: 1.6;
   margin-bottom: 16px;
@@ -1899,14 +1923,14 @@ a {
   border: 1.5px solid #FCD34D;
   border-radius: 14px;
   padding: 12px 18px;
-  font-size: 17px;
+  font-size: 12pt;
   color: #92400E;
   line-height: 1.5;
   margin-bottom: 24px;
 }
 
 .storage-saver-badge .badge-icon {
-  font-size: 22px;
+  font-size: 14pt;
   line-height: 1;
 }
 
@@ -1921,8 +1945,8 @@ a {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 18px 36px;
-  font-size: 22px;
+  padding: 12px 28px;
+  font-size: 12pt;
   font-weight: 800;
   color: #FFFFFF;
   background: linear-gradient(135deg, #B45309 0%, #D97706 100%);
@@ -1940,7 +1964,7 @@ a {
 }
 
 .photo-file-btn .btn-icon {
-  font-size: 26px;
+  font-size: 14pt;
 }
 
 /* 사진 압축 미리보기 & 입력 영역 */
@@ -1984,7 +2008,7 @@ a {
   right: 10px;
   background-color: rgba(16, 185, 129, 0.95);
   color: #FFFFFF;
-  font-size: 15px;
+  font-size: 12pt;
   font-weight: 800;
   padding: 6px 10px;
   border-radius: 8px;
@@ -2010,18 +2034,18 @@ a {
 }
 
 .compress-metric-card .metric-icon {
-  font-size: 26px;
+  font-size: 14pt;
 }
 
 .compress-metric-card strong {
   display: block;
-  font-size: 18px;
+  font-size: 12pt;
   color: #065F46;
   font-weight: 800;
 }
 
 .compress-metric-card p {
-  font-size: 16px;
+  font-size: 12pt;
   color: #047857;
   margin: 0;
   font-weight: 600;
@@ -2043,8 +2067,8 @@ a {
 .btn-upload-submit {
   background-color: #B45309;
   border-color: #92400E;
-  font-size: 20px;
-  padding: 12px 28px;
+  font-size: 12pt;
+  padding: 10px 24px;
 }
 
 .btn-upload-submit:hover {
@@ -2069,7 +2093,7 @@ a {
 }
 
 .photo-gallery-heading {
-  font-size: 26px;
+  font-size: 14pt; /* 제목 14pt */
   font-weight: 800;
   color: var(--text-main);
 }
@@ -2084,7 +2108,7 @@ a {
 .gallery-size-pill {
   display: inline-block;
   padding: 6px 14px;
-  font-size: 16px;
+  font-size: 12pt;
   font-weight: 700;
   border-radius: 999px;
 }
@@ -2149,7 +2173,7 @@ a {
   right: 10px;
   background-color: rgba(0, 0, 0, 0.65);
   color: #FFFFFF;
-  font-size: 13px;
+  font-size: 12pt;
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 6px;
@@ -2164,7 +2188,7 @@ a {
 }
 
 .photo-card-title {
-  font-size: 21px;
+  font-size: 14pt; /* 카드 제목 14pt */
   font-weight: 800;
   color: var(--text-main);
   margin-bottom: 8px;
@@ -2173,7 +2197,7 @@ a {
 }
 
 .photo-card-meta {
-  font-size: 16px;
+  font-size: 12pt;
   color: var(--text-muted);
   margin-bottom: 16px;
   display: flex;
@@ -2195,7 +2219,7 @@ a {
 
 .btn-photo-view {
   flex: 2;
-  font-size: 17px;
+  font-size: 12pt;
   padding: 8px 14px;
   background-color: var(--blue-soft);
   color: var(--blue-primary);
@@ -2213,7 +2237,7 @@ a {
 
 .btn-photo-del {
   flex: 1;
-  font-size: 16px;
+  font-size: 12pt;
   padding: 8px 12px;
   background-color: #FFFFFF;
   color: #DC2626;
@@ -2234,10 +2258,10 @@ a {
   background-color: #FFFFFF;
   border: 2px dashed #CBD5E1;
   border-radius: 16px;
-  padding: 48px 24px;
+  padding: 40px 24px;
   text-align: center;
   color: var(--text-muted);
-  font-size: 20px;
+  font-size: 12pt;
 }
 
 /* ========================================================
@@ -2287,13 +2311,13 @@ a {
   top: 14px;
   right: 14px;
   z-index: 5;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background-color: rgba(0, 0, 0, 0.65);
   color: #FFFFFF;
   border: 2px solid rgba(255, 255, 255, 0.4);
-  font-size: 22px;
+  font-size: 14pt;
   font-weight: 800;
   cursor: pointer;
   display: flex;
@@ -2327,20 +2351,20 @@ a {
 }
 
 .photo-modal-caption {
-  padding: 20px 24px;
+  padding: 18px 22px;
   background-color: #1E293B;
   color: #FFFFFF;
 }
 
 .photo-modal-title {
-  font-size: 24px;
+  font-size: 14pt; /* 모달 제목 14pt */
   font-weight: 800;
   margin-bottom: 6px;
   color: #F8FAFC;
 }
 
 .photo-modal-meta {
-  font-size: 16px;
+  font-size: 12pt;
   color: #94A3B8;
   margin: 0;
 }
@@ -2352,23 +2376,23 @@ a {
   background-color: #FFFFFF;
   border: 2px solid var(--border-light);
   border-radius: var(--radius-card);
-  padding: 36px 32px;
+  padding: 32px 28px;
   box-shadow: var(--shadow-card);
   margin-bottom: 36px;
 }
 
 .qna-card-title {
-  font-size: 26px;
+  font-size: 14pt; /* 제목 14pt */
   font-weight: 800;
   color: #4338CA;
   margin-bottom: 8px;
 }
 
 .qna-card-desc {
-  font-size: 19px;
+  font-size: 12pt; /* 본문 12pt */
   color: var(--text-muted);
   line-height: 1.6;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .qna-user-row {
@@ -2378,8 +2402,8 @@ a {
 }
 
 .btn-qna-submit {
-  font-size: 21px;
-  padding: 14px 34px;
+  font-size: 12pt;
+  padding: 12px 28px;
   background-color: #4338CA;
   border-color: #3730A3;
 }
@@ -2404,15 +2428,15 @@ a {
 }
 
 .qna-list-heading {
-  font-size: 26px;
+  font-size: 14pt; /* 제목 14pt */
   font-weight: 800;
   color: var(--text-main);
 }
 
 .qna-count-pill {
   display: inline-block;
-  padding: 6px 16px;
-  font-size: 17px;
+  padding: 6px 14px;
+  font-size: 12pt;
   font-weight: 700;
   background-color: #EEF2FF;
   color: #4338CA;
@@ -2423,14 +2447,14 @@ a {
 .qna-items-list {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 20px;
 }
 
 .qna-card {
   background-color: #FFFFFF;
   border: 2px solid var(--border-light);
   border-radius: 18px;
-  padding: 28px 30px;
+  padding: 24px 26px;
   box-shadow: var(--shadow-card);
   transition: all 0.2s ease;
 }
@@ -2453,7 +2477,7 @@ a {
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
-  font-size: 16px;
+  font-size: 12pt;
   font-weight: 800;
   border-radius: 999px;
 }
@@ -2474,7 +2498,7 @@ a {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 16px;
+  font-size: 12pt;
   color: var(--text-muted);
 }
 
@@ -2484,7 +2508,7 @@ a {
 }
 
 .btn-qna-del {
-  font-size: 15px;
+  font-size: 12pt;
   padding: 4px 10px;
   background-color: #FFFFFF;
   color: #DC2626;
@@ -2501,15 +2525,15 @@ a {
 }
 
 .qna-question-title {
-  font-size: 23px;
+  font-size: 14pt; /* 질문 제목 14pt */
   font-weight: 800;
   color: var(--text-main);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   line-height: 1.4;
 }
 
 .qna-question-body {
-  font-size: 19px;
+  font-size: 12pt; /* 본문 12pt */
   color: #334155;
   line-height: 1.75;
   white-space: pre-wrap;
@@ -2518,8 +2542,8 @@ a {
 
 /* 관리자 답변 박스 */
 .qna-answer-box {
-  margin-top: 18px;
-  padding: 20px 24px;
+  margin-top: 16px;
+  padding: 18px 22px;
   background-color: #F0FDF4;
   border: 2px solid #86EFAC;
   border-radius: 14px;
@@ -2529,24 +2553,24 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
   gap: 8px;
 }
 
 .qna-answer-author {
-  font-size: 17px;
+  font-size: 14pt; /* 답변자 제목 14pt */
   font-weight: 800;
   color: #15803D;
 }
 
 .qna-answer-date {
-  font-size: 15px;
+  font-size: 12pt;
   color: #166534;
 }
 
 .qna-answer-text {
-  font-size: 19px;
+  font-size: 12pt; /* 답변 본문 12pt */
   color: #14532D;
   line-height: 1.75;
   white-space: pre-wrap;
@@ -2564,8 +2588,8 @@ a {
   background-color: #4338CA;
   color: #FFFFFF;
   border: 1.5px solid #3730A3;
-  padding: 8px 18px;
-  font-size: 17px;
+  padding: 8px 16px;
+  font-size: 12pt;
   font-weight: 700;
   border-radius: 10px;
   cursor: pointer;
@@ -2584,7 +2608,7 @@ a {
   width: 100%;
   background-color: #FFFFFF;
   border-radius: 20px;
-  padding: 32px 30px;
+  padding: 30px 28px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
 
@@ -2596,7 +2620,7 @@ a {
 }
 
 .qna-answer-modal-title {
-  font-size: 24px;
+  font-size: 14pt; /* 모달 제목 14pt */
   font-weight: 800;
   color: #4338CA;
   margin: 0;
@@ -2606,13 +2630,13 @@ a {
   background-color: #F8FAFC;
   border: 1.5px solid #E2E8F0;
   border-radius: 12px;
-  padding: 16px 18px;
-  margin-bottom: 20px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
 }
 
 .qna-modal-q-badge {
   display: inline-block;
-  font-size: 13px;
+  font-size: 12pt;
   font-weight: 800;
   color: #64748B;
   background-color: #E2E8F0;
@@ -2623,13 +2647,14 @@ a {
 
 .qna-modal-q-title {
   display: block;
-  font-size: 18px;
+  font-size: 14pt; /* 질문 제목 14pt */
+  font-weight: 700;
   color: #0F172A;
   margin-bottom: 6px;
 }
 
 .qna-modal-q-content {
-  font-size: 16px;
+  font-size: 12pt; /* 본문 12pt */
   color: #475569;
   line-height: 1.6;
   white-space: pre-wrap;
