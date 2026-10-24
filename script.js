@@ -13,6 +13,7 @@
 
   // 관리자 계정 정보
   const ADMIN_NAME = '예성원';
+  const ADMIN_DISPLAY_NAME = '관리자';
   const ADMIN_PIN = '8797';
 
   // 첨부된 엑셀/CSV 데이터 목록 (A열: 날짜, B열: 내용)
@@ -43,6 +44,7 @@
   ];
 
   // 로컬 스토리지 키
+  const STORAGE_KEY_COPYWRITING = 'senior_kitchen_copywriting_v2';
   const STORAGE_KEY_POSTS = 'senior_kitchen_writings_v2';
   const STORAGE_KEY_USER = 'senior_kitchen_current_user_v2';
   const STORAGE_KEY_ATTENDANCE = 'senior_kitchen_attendance_v2';
@@ -54,6 +56,14 @@
   // 베껴쓰기 DOM 요소
   const dateElement = document.getElementById('copywriting-date');
   const contentElement = document.getElementById('copywriting-content');
+  const adminCopywritingManager = document.getElementById('admin-copywriting-manager');
+  const copywritingAdminForm = document.getElementById('copywriting-admin-form');
+  const copywritingInputDate = document.getElementById('copywriting-input-date');
+  const copywritingInputContent = document.getElementById('copywriting-input-content');
+  const btnSaveCopywriting = document.getElementById('btn-save-copywriting');
+  const btnCancelCopywriting = document.getElementById('btn-cancel-copywriting');
+  const copywritingListCount = document.getElementById('copywriting-list-count');
+  const copywritingTableBody = document.getElementById('copywriting-table-body');
 
   // 사용자 인증 DOM 요소
   const userAuthBar = document.getElementById('user-auth-bar') || document.querySelector('.user-auth-bar');
@@ -192,44 +202,263 @@
   let editingAdminPostId = null; // 현재 관리자가 수정 중인 회원 글 ID
 
   /* ========================================================
-     1. 베껴쓰기 (0시 자동 갱신)
+     1. 베껴쓰기 (0시 자동 갱신 & 관리자 직접 입력·수정·삭제)
      ======================================================== */
+  function getTodayKey() {
+    const now = new Date();
+    const yyyy = String(now.getFullYear());
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function formatDateKorean(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    return `${parseInt(parts[0], 10)}년 ${parseInt(parts[1], 10)}월 ${parseInt(parts[2], 10)}일`;
+  }
+
+  function getCopywritingList() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_COPYWRITING);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter(item => item && item.date && item.content && item.content.trim());
+        }
+      }
+    } catch (e) {}
+
+    // 초기 기본 데이터 세팅
+    const initial = writingSchedule
+      .filter(function (item) {
+        return item && item.date && item.content && item.content.trim();
+      })
+      .map(function (item) {
+        return {
+          date: item.date,
+          content: item.content.trim(),
+          updatedAt: Date.now()
+        };
+      });
+    saveCopywritingList(initial);
+    return initial;
+  }
+
+  function saveCopywritingList(list) {
+    try {
+      localStorage.setItem(STORAGE_KEY_COPYWRITING, JSON.stringify(list));
+    } catch (e) {}
+  }
+
   function updateDailyContent() {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
     const day = now.getDate();
 
-    const yyyy = String(year);
-    const mm = String(month).padStart(2, '0');
-    const dd = String(day).padStart(2, '0');
-    const todayKey = `${yyyy}-${mm}-${dd}`;
+    const todayKey = getTodayKey();
     const dateFormatted = `${year}년 ${month}월 ${day}일`;
 
     lastLoadedDay = day;
+
+    const scheduleList = getCopywritingList();
+    const matchedItem = scheduleList.find(function (item) {
+      return item.date === todayKey && item.content && item.content.trim();
+    });
+
+    if (matchedItem) {
+      if (dateElement) dateElement.textContent = dateFormatted;
+      if (contentElement) contentElement.textContent = matchedItem.content.trim();
+      return;
+    }
+
+    // 오늘 날짜 글귀가 없으면 오늘 이전 날짜 중 가장 최근 글귀(없으면 전체 중 가장 최근 글귀) 표시
+    const validItems = scheduleList
+      .filter(function (item) {
+        return item && item.date && item.content && item.content.trim();
+      })
+      .sort(function (a, b) {
+        return a.date.localeCompare(b.date);
+      });
 
     if (dateElement) {
       dateElement.textContent = dateFormatted;
     }
 
-    const matchedItem = writingSchedule.find(function (item) {
-      return item.date === todayKey;
-    });
-
     if (contentElement) {
-      if (matchedItem && matchedItem.content && matchedItem.content.trim()) {
-        contentElement.textContent = matchedItem.content.trim();
-      } else {
-        const validItems = writingSchedule.filter(function (item) {
-          return item.content && item.content.trim();
+      if (validItems.length > 0) {
+        const pastOrToday = validItems.filter(function (item) {
+          return item.date <= todayKey;
         });
-        if (validItems.length > 0) {
-          contentElement.textContent = validItems[validItems.length - 1].content.trim();
-        } else {
-          contentElement.textContent = '';
-        }
+        const chosen = pastOrToday.length > 0
+          ? pastOrToday[pastOrToday.length - 1]
+          : validItems[validItems.length - 1];
+        contentElement.textContent = chosen.content.trim();
+      } else {
+        contentElement.textContent = '등록된 베껴쓰기 글귀가 없습니다.';
       }
     }
+  }
+
+  function renderAdminCopywritingTable() {
+    if (!copywritingTableBody) return;
+
+    const list = getCopywritingList().slice().sort(function (a, b) {
+      return (b.date || '').localeCompare(a.date || '');
+    });
+
+    if (copywritingListCount) {
+      copywritingListCount.textContent = `총 ${list.length}건`;
+    }
+
+    if (list.length === 0) {
+      copywritingTableBody.innerHTML = '<tr><td colspan="3" class="admin-posts-empty-row">등록된 베껴쓰기 글귀가 없습니다. 위 입력란에서 날짜와 내용을 등록해 보세요.</td></tr>';
+      return;
+    }
+
+    const todayKey = getTodayKey();
+    let html = '';
+
+    list.forEach(function (item) {
+      const dateStr = escapeHtml(item.date || '');
+      const isToday = item.date === todayKey;
+      const todayBadge = isToday ? '<span class="cw-today-badge">오늘</span>' : '';
+      const rawContent = item.content || '';
+      const oneLineContent = escapeHtml(rawContent.replace(/\s+/g, ' ').trim());
+      const cleanTooltip = rawContent.replace(/"/g, '&quot;');
+
+      html += `
+        <tr>
+          <td class="cell-cw-date">${dateStr}${todayBadge}</td>
+          <td class="cell-cw-content" title="${cleanTooltip}">${oneLineContent}</td>
+          <td class="cell-actions">
+            <div class="table-actions-wrap">
+              <button type="button" class="btn-table-edit btn-cw-edit" data-date="${dateStr}">✏️ 수정</button>
+              <button type="button" class="btn-table-del btn-cw-del" data-date="${dateStr}">🗑️ 삭제</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    copywritingTableBody.innerHTML = html;
+
+    // 수정 버튼 클릭 시 입력란에 해당 날짜와 내용을 채움
+    copywritingTableBody.querySelectorAll('.btn-cw-edit').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const targetDate = btn.getAttribute('data-date');
+        const found = getCopywritingList().find(function (item) {
+          return item.date === targetDate;
+        });
+        if (!found) return;
+
+        if (copywritingInputDate) copywritingInputDate.value = found.date;
+        if (copywritingInputContent) {
+          copywritingInputContent.value = found.content;
+          copywritingInputContent.focus();
+        }
+        if (btnSaveCopywriting) btnSaveCopywriting.textContent = '📖 수정 내용 저장';
+        if (btnCancelCopywriting) btnCancelCopywriting.style.display = 'inline-flex';
+      });
+    });
+
+    // 삭제 버튼 클릭 시 해당 날짜의 베껴쓰기 삭제
+    copywritingTableBody.querySelectorAll('.btn-cw-del').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const targetDate = btn.getAttribute('data-date');
+        if (!targetDate) return;
+
+        if (!confirm(`[베껴쓰기 삭제]\n\n날짜: ${targetDate}\n이 날짜의 베껴쓰기 내용을 삭제하시겠습니까?`)) {
+          return;
+        }
+
+        const updated = getCopywritingList().filter(function (item) {
+          return item.date !== targetDate;
+        });
+        saveCopywritingList(updated);
+        cloudDeleteCopywriting(targetDate);
+        updateDailyContent();
+        renderAdminCopywritingTable();
+      });
+    });
+  }
+
+  function resetCopywritingForm() {
+    if (copywritingInputDate) copywritingInputDate.value = getTodayKey();
+    if (copywritingInputContent) copywritingInputContent.value = '';
+    if (btnSaveCopywriting) btnSaveCopywriting.textContent = '📖 베껴쓰기 등록 / 저장';
+    if (btnCancelCopywriting) btnCancelCopywriting.style.display = 'none';
+  }
+
+  function initCopywritingAdmin() {
+    if (copywritingInputDate && !copywritingInputDate.value) {
+      copywritingInputDate.value = getTodayKey();
+    }
+
+    if (btnCancelCopywriting) {
+      btnCancelCopywriting.addEventListener('click', function () {
+        resetCopywritingForm();
+      });
+    }
+
+    if (copywritingAdminForm) {
+      copywritingAdminForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        if (!isAdmin(currentUser)) {
+          alert('관리자만 베껴쓰기를 등록하거나 수정할 수 있습니다.');
+          return;
+        }
+
+        const dateVal = copywritingInputDate ? copywritingInputDate.value.trim() : '';
+        const contentVal = copywritingInputContent ? copywritingInputContent.value.trim() : '';
+
+        if (!dateVal) {
+          alert('날짜를 선택해 주세요.');
+          if (copywritingInputDate) copywritingInputDate.focus();
+          return;
+        }
+
+        if (!contentVal) {
+          alert('베껴쓰기 내용을 입력해 주세요.');
+          if (copywritingInputContent) copywritingInputContent.focus();
+          return;
+        }
+
+        const list = getCopywritingList();
+        const existingIndex = list.findIndex(function (item) {
+          return item.date === dateVal;
+        });
+
+        const newItem = {
+          date: dateVal,
+          content: contentVal,
+          updatedAt: Date.now()
+        };
+
+        if (existingIndex !== -1) {
+          list[existingIndex] = newItem;
+        } else {
+          list.push(newItem);
+        }
+
+        list.sort(function (a, b) {
+          return (a.date || '').localeCompare(b.date || '');
+        });
+
+        saveCopywritingList(list);
+        cloudPushCopywriting(newItem);
+        updateDailyContent();
+        renderAdminCopywritingTable();
+        resetCopywritingForm();
+
+        alert(`${formatDateKorean(dateVal)} 베껴쓰기 내용이 저장되었습니다.`);
+      });
+    }
+
+    renderAdminCopywritingTable();
   }
 
   function scheduleMidnightUpdate() {
@@ -846,6 +1075,7 @@
       const allPosts = getAllPosts();
       const photos = getPhotos();
       const qnaList = getQnaList();
+      const copywritingList = getCopywritingList();
 
       const postsObj = {};
       allPosts.forEach(p => { if (p && p.id) postsObj[p.id] = p; });
@@ -856,7 +1086,10 @@
       const qnaObj = {};
       qnaList.forEach(q => { if (q && q.id) qnaObj[q.id] = q; });
 
-      const [attRes, postRes, photoRes, qnaRes] = await Promise.all([
+      const cwObj = {};
+      copywritingList.forEach(c => { if (c && c.date) cwObj[c.date] = c; });
+
+      const [attRes, postRes, photoRes, qnaRes, cwRes] = await Promise.all([
         fetch(`${url}/attendance.json`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -876,10 +1109,15 @@
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(qnaObj)
+        }).catch(err => ({ ok: false, status: 0, err })),
+        fetch(`${url}/copywriting.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cwObj)
         }).catch(err => ({ ok: false, status: 0, err }))
       ]);
 
-      const any401 = [attRes, postRes, photoRes, qnaRes].some(r => r && (r.status === 401 || r.status === 403));
+      const any401 = [attRes, postRes, photoRes, qnaRes, cwRes].some(r => r && (r.status === 401 || r.status === 403));
       if (any401) {
         setSyncStatus('error', '⚠️ 파이어베이스 규칙 잠김 (401 Permission Denied)');
         if (firebaseDiagnosisBox) {
@@ -1077,6 +1315,42 @@
     } catch (e) {}
   }
 
+  function cloudPushCopywriting(cwItem) {
+    const url = getCloudUrl();
+    if (!url || !cwItem || !cwItem.date) return;
+    try {
+      fetch(`${url}/copywriting/${encodeURIComponent(cwItem.date)}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cwItem)
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function cloudDeleteCopywriting(dateKey) {
+    const url = getCloudUrl();
+    if (!url || !dateKey) return;
+    try {
+      fetch(`${url}/copywriting/${encodeURIComponent(dateKey)}.json`, {
+        method: 'DELETE'
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function cloudSyncAllCopywriting(cwList) {
+    const url = getCloudUrl();
+    if (!url) return;
+    try {
+      const cwObj = {};
+      cwList.forEach(c => { if (c && c.date) cwObj[c.date] = c; });
+      fetch(`${url}/copywriting.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cwObj)
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
   /**
    * 다른 기기(PC, 모바일폰)에서 등록된 출석, 글, 사진, Q&A를 클라우드에서 가져와 병합
    */
@@ -1093,16 +1367,17 @@
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 6500);
 
-      const [attRes, postRes, photoRes, qnaRes] = await Promise.all([
+      const [attRes, postRes, photoRes, qnaRes, cwRes] = await Promise.all([
         fetch(`${url}/attendance.json`, { signal: controller.signal }).catch(() => null),
         fetch(`${url}/posts.json`, { signal: controller.signal }).catch(() => null),
         fetch(`${url}/photos.json`, { signal: controller.signal }).catch(() => null),
-        fetch(`${url}/qna.json`, { signal: controller.signal }).catch(() => null)
+        fetch(`${url}/qna.json`, { signal: controller.signal }).catch(() => null),
+        fetch(`${url}/copywriting.json`, { signal: controller.signal }).catch(() => null)
       ]);
       clearTimeout(timeoutId);
 
       // 401/403 권한 거부(보안 규칙 잠김) 감지
-      const responses = [attRes, postRes, photoRes, qnaRes];
+      const responses = [attRes, postRes, photoRes, qnaRes, cwRes];
       const isPermissionDenied = responses.some(r => r && (r.status === 401 || r.status === 403));
 
       if (isPermissionDenied) {
@@ -1199,9 +1474,22 @@
 
           cloudPhotos.forEach(p => {
             if (p && p.id && p.imageData) {
+              if (p.author && String(p.author).trim().includes(ADMIN_NAME)) {
+                p.author = ADMIN_DISPLAY_NAME;
+                photoUpdated = true;
+                cloudPushPhoto(p);
+              }
               if (!photoMap.has(p.id)) {
                 photoMap.set(p.id, p);
                 photoUpdated = true;
+              } else {
+                const existing = photoMap.get(p.id);
+                if (existing.author && String(existing.author).trim().includes(ADMIN_NAME)) {
+                  existing.author = ADMIN_DISPLAY_NAME;
+                  photoMap.set(p.id, existing);
+                  photoUpdated = true;
+                  cloudPushPhoto(existing);
+                }
               }
             }
           });
@@ -1227,11 +1515,30 @@
 
           cloudQna.forEach(q => {
             if (q && q.id && q.title) {
+              let cloudQnaNeedsFix = false;
+              if (q.answeredBy && String(q.answeredBy).trim().includes(ADMIN_NAME)) {
+                q.answeredBy = ADMIN_DISPLAY_NAME;
+                qnaUpdated = true;
+                cloudQnaNeedsFix = true;
+              }
+              if (q.author && String(q.author).trim().includes(ADMIN_NAME)) {
+                q.author = ADMIN_DISPLAY_NAME;
+                qnaUpdated = true;
+                cloudQnaNeedsFix = true;
+              }
+              if (cloudQnaNeedsFix) {
+                cloudPushQna(q);
+              }
               if (!qnaMap.has(q.id)) {
                 qnaMap.set(q.id, q);
                 qnaUpdated = true;
               } else {
                 const existing = qnaMap.get(q.id);
+                if (existing.answeredBy && String(existing.answeredBy).trim().includes(ADMIN_NAME)) {
+                  existing.answeredBy = ADMIN_DISPLAY_NAME;
+                  qnaMap.set(q.id, existing);
+                  qnaUpdated = true;
+                }
                 // 클라우드에 답변이 새로 등록/수정되었으면 병합
                 if (q.answer && (!existing.answer || q.answeredAt > existing.answeredAt)) {
                   qnaMap.set(q.id, q);
@@ -1246,6 +1553,43 @@
             mergedQna.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
             saveQnaList(mergedQna);
             renderQnaList();
+          }
+        }
+      }
+
+      // 5. 베껴쓰기 병합
+      if (cwRes && cwRes.ok) {
+        const cwData = await cwRes.json();
+        if (cwData && !cwData.error) {
+          const cloudCw = Array.isArray(cwData) ? cwData.filter(Boolean) : Object.values(cwData);
+          const localCw = getCopywritingList();
+          const cwMap = new Map();
+          let cwUpdated = false;
+
+          localCw.forEach(c => { if (c && c.date && c.content) cwMap.set(c.date, c); });
+
+          cloudCw.forEach(c => {
+            if (c && c.date && c.content) {
+              if (!cwMap.has(c.date)) {
+                cwMap.set(c.date, c);
+                cwUpdated = true;
+              } else {
+                const existing = cwMap.get(c.date);
+                if ((c.updatedAt || 0) > (existing.updatedAt || 0)) {
+                  cwMap.set(c.date, c);
+                  cwUpdated = true;
+                }
+              }
+            }
+          });
+
+          if (cwUpdated) {
+            const mergedCw = Array.from(cwMap.values()).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+            saveCopywritingList(mergedCw);
+            updateDailyContent();
+            if (isAdmin(currentUser)) {
+              renderAdminCopywritingTable();
+            }
           }
         }
       }
@@ -1306,16 +1650,19 @@
 
       renderUserPosts();
 
-      // 2. 관리자(예성원/8797) 로그인 시에만 출석체크 및 회원 글 모음 노출
+      // 2. 관리자(예성원/8797) 로그인 시에만 베껴쓰기 관리, 출석체크 및 회원 글 모음 노출
       if (isAdmin(user)) {
+        if (adminCopywritingManager) adminCopywritingManager.style.display = 'block';
         if (adminAttendanceSection) adminAttendanceSection.style.display = 'block';
         if (adminNavItem) adminNavItem.style.display = 'inline-block';
         if (adminPostsSection) adminPostsSection.style.display = 'block';
         if (adminPostsNavItem) adminPostsNavItem.style.display = 'inline-block';
+        renderAdminCopywritingTable();
         renderAdminAttendanceTable();
         renderAdminPostsTable();
         startAdminCloudSync();
       } else {
+        if (adminCopywritingManager) adminCopywritingManager.style.display = 'none';
         if (adminAttendanceSection) adminAttendanceSection.style.display = 'none';
         if (adminNavItem) adminNavItem.style.display = 'none';
         if (adminPostsSection) adminPostsSection.style.display = 'none';
@@ -1323,10 +1670,15 @@
         stopAdminCloudSync();
       }
 
-      // 사진 및 Q&A 작성자/비번 자동 입력
-      if (photoAuthorInput && !photoAuthorInput.value) photoAuthorInput.value = user.name;
+      // 사진 및 Q&A 작성자/비번 자동 입력 (관리자 로그인 시 '예성원' 대신 '관리자'로 설정)
+      const displayAuthor = isAdmin(user) ? ADMIN_DISPLAY_NAME : user.name;
+      if (photoAuthorInput && (!photoAuthorInput.value || photoAuthorInput.value.includes(ADMIN_NAME) || isAdmin(user))) {
+        photoAuthorInput.value = displayAuthor;
+      }
       if (photoPinInput && !photoPinInput.value) photoPinInput.value = user.pin;
-      if (qnaNameInput && !qnaNameInput.value) qnaNameInput.value = user.name;
+      if (qnaNameInput && (!qnaNameInput.value || qnaNameInput.value.includes(ADMIN_NAME) || isAdmin(user))) {
+        qnaNameInput.value = displayAuthor;
+      }
       if (qnaPinInput && !qnaPinInput.value) qnaPinInput.value = user.pin;
       renderPhotoGallery();
       renderQnaList();
@@ -1347,11 +1699,17 @@
       if (userPostsList) userPostsList.innerHTML = '';
       if (postViewCard) postViewCard.style.display = 'none';
 
+      if (adminCopywritingManager) adminCopywritingManager.style.display = 'none';
       if (adminAttendanceSection) adminAttendanceSection.style.display = 'none';
       if (adminNavItem) adminNavItem.style.display = 'none';
       if (adminPostsSection) adminPostsSection.style.display = 'none';
       if (adminPostsNavItem) adminPostsNavItem.style.display = 'none';
       stopAdminCloudSync();
+
+      if (photoAuthorInput) photoAuthorInput.value = '';
+      if (photoPinInput) photoPinInput.value = '';
+      if (qnaNameInput) qnaNameInput.value = '';
+      if (qnaPinInput) qnaPinInput.value = '';
 
       renderPhotoGallery();
       renderQnaList();
@@ -1971,7 +2329,19 @@
   function getPhotos() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY_PHOTOS);
-      return raw ? JSON.parse(raw) : [];
+      const list = raw ? JSON.parse(raw) : [];
+      let changed = false;
+      list.forEach(function (p) {
+        if (p && p.author && String(p.author).trim().includes(ADMIN_NAME)) {
+          p.author = ADMIN_DISPLAY_NAME;
+          changed = true;
+          cloudPushPhoto(p);
+        }
+      });
+      if (changed) {
+        savePhotos(list);
+      }
+      return list;
     } catch (e) {
       return [];
     }
@@ -1984,6 +2354,18 @@
   }
 
   function initPhotos() {
+    // 사진 게시자 입력란에 '예성원' 입력 시 자동으로 '관리자'로 변환
+    if (photoAuthorInput) {
+      const normalizePhotoAuthor = function () {
+        if (photoAuthorInput.value.trim() === ADMIN_NAME) {
+          photoAuthorInput.value = ADMIN_DISPLAY_NAME;
+        }
+      };
+      photoAuthorInput.addEventListener('input', normalizePhotoAuthor);
+      photoAuthorInput.addEventListener('change', normalizePhotoAuthor);
+      photoAuthorInput.addEventListener('blur', normalizePhotoAuthor);
+    }
+
     // 1. 사진 파일 선택 시 즉시 초경량 압축 및 미리보기 생성
     if (photoFileInput) {
       photoFileInput.addEventListener('change', async function (e) {
@@ -2014,9 +2396,12 @@
             photoFileLabelText.textContent = `사진 변경하기: ${file.name}`;
           }
 
-          // 로그인 사용자가 있다면 이름/비번 자동 입력
+          // 로그인 사용자가 있다면 이름/비번 자동 입력 (관리자 로그인 시 '예성원' 대신 '관리자'로 설정)
           if (currentUser) {
-            if (photoAuthorInput && !photoAuthorInput.value) photoAuthorInput.value = currentUser.name;
+            const defaultPhotoAuthor = isAdmin(currentUser) ? ADMIN_DISPLAY_NAME : currentUser.name;
+            if (photoAuthorInput && (!photoAuthorInput.value || photoAuthorInput.value === ADMIN_NAME || isAdmin(currentUser))) {
+              photoAuthorInput.value = defaultPhotoAuthor;
+            }
             if (photoPinInput && !photoPinInput.value) photoPinInput.value = currentUser.pin;
           }
 
@@ -2057,7 +2442,10 @@
         }
 
         const title = photoTitleInput ? photoTitleInput.value.trim() : '';
-        const author = photoAuthorInput ? photoAuthorInput.value.trim() : '';
+        const rawAuthor = photoAuthorInput ? photoAuthorInput.value.trim() : '';
+        const author = (rawAuthor === ADMIN_NAME || (isAdmin(currentUser) && (!rawAuthor || rawAuthor === ADMIN_NAME)))
+          ? ADMIN_DISPLAY_NAME
+          : rawAuthor;
         const pin = photoPinInput ? photoPinInput.value.trim() : '';
 
         if (!title) {
@@ -2130,7 +2518,8 @@
     if (photoModalImg) photoModalImg.src = photo.imageData;
     if (photoModalTitle) photoModalTitle.textContent = photo.title || '나눔 사진';
     if (photoModalMeta) {
-      photoModalMeta.textContent = `올린이: ${photo.author || '익명'} · 등록일: ${photo.createdAt || ''} · 용량: ${formatBytes(photo.sizeBytes || 32000)}`;
+      const displayAuthor = (photo.author === ADMIN_NAME) ? ADMIN_DISPLAY_NAME : (photo.author || '익명');
+      photoModalMeta.textContent = `올린이: ${displayAuthor} · 등록일: ${photo.createdAt || ''} · 용량: ${formatBytes(photo.sizeBytes || 32000)}`;
     }
     photoModal.style.display = 'flex';
   }
@@ -2162,7 +2551,8 @@
     photos.forEach(function (photo) {
       const id = escapeHtml(photo.id);
       const title = escapeHtml(photo.title || '나눔 사진');
-      const author = escapeHtml(photo.author || '익명');
+      const rawAuthor = (photo.author === ADMIN_NAME) ? ADMIN_DISPLAY_NAME : (photo.author || '익명');
+      const author = escapeHtml(rawAuthor);
       const date = escapeHtml(photo.createdAt || '');
       const sizeStr = formatBytes(photo.sizeBytes || 32000);
 
@@ -2236,7 +2626,22 @@
   function getQnaList() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY_QNA);
-      return raw ? JSON.parse(raw) : [];
+      const list = raw ? JSON.parse(raw) : [];
+      let changed = false;
+      list.forEach(function (q) {
+        if (q && q.answeredBy === ADMIN_NAME) {
+          q.answeredBy = ADMIN_DISPLAY_NAME;
+          changed = true;
+        }
+        if (q && q.author === ADMIN_NAME) {
+          q.author = ADMIN_DISPLAY_NAME;
+          changed = true;
+        }
+      });
+      if (changed) {
+        saveQnaList(list);
+      }
+      return list;
     } catch (e) {
       return [];
     }
@@ -2254,7 +2659,10 @@
       qnaForm.addEventListener('submit', function (e) {
         e.preventDefault();
 
-        const name = qnaNameInput ? qnaNameInput.value.trim() : '';
+        const rawName = qnaNameInput ? qnaNameInput.value.trim() : '';
+        const name = (rawName === ADMIN_NAME || (isAdmin(currentUser) && (!rawName || rawName === ADMIN_NAME)))
+          ? ADMIN_DISPLAY_NAME
+          : rawName;
         const pin = qnaPinInput ? qnaPinInput.value.trim() : '';
         const title = qnaTitleInput ? qnaTitleInput.value.trim() : '';
         const content = qnaContentInput ? qnaContentInput.value.trim() : '';
@@ -2332,7 +2740,7 @@
 
         target.answer = answerText;
         target.answeredAt = formatDateTime(new Date());
-        target.answeredBy = (currentUser && currentUser.name) ? currentUser.name : '예성원';
+        target.answeredBy = ADMIN_DISPLAY_NAME;
 
         saveQnaList(list);
         cloudPushQna(target);
@@ -2503,11 +2911,12 @@
       if (hasAnswer) {
         const ansDate = escapeHtml(q.answeredAt || '');
         const ansText = escapeHtml(q.answer);
+        const ansAuthor = (!q.answeredBy || q.answeredBy === ADMIN_NAME) ? ADMIN_DISPLAY_NAME : q.answeredBy;
 
         answerHtml = `
           <div class="qna-answer-box">
             <div class="qna-answer-header">
-              <span class="qna-answer-author">👑 관리자의 답변</span>
+              <span class="qna-answer-author">👑 ${escapeHtml(ansAuthor)}의 답변</span>
               <span class="qna-answer-date">${ansDate}</span>
             </div>
             <p class="qna-answer-text">${ansText}</p>
@@ -2658,6 +3067,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     updateDailyContent();
     scheduleMidnightUpdate();
+    initCopywritingAdmin();
     initAuth();
     initWriting();
     initPostViewActions();
