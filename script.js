@@ -134,7 +134,6 @@
   const photoGalleryGrid = document.getElementById('photo-gallery-grid');
   const photoGalleryEmpty = document.getElementById('photo-gallery-empty');
   const photoGalleryCount = document.getElementById('photo-gallery-count');
-  const photoGallerySize = document.getElementById('photo-gallery-size');
   const photoModal = document.getElementById('photo-modal');
   const photoModalImg = document.getElementById('photo-modal-img');
   const photoModalTitle = document.getElementById('photo-modal-title');
@@ -2134,15 +2133,9 @@
 
     const photos = getPhotos();
 
-    // 총 장수 및 서버 용량 통계 업데이트
-    const totalBytes = photos.reduce((acc, p) => acc + (p.sizeBytes || 32000), 0);
-    const quotaPercent = ((totalBytes / (1024 * 1024 * 1024)) * 100).toFixed(3);
-
+    // 총 장수 업데이트
     if (photoGalleryCount) {
       photoGalleryCount.textContent = `총 ${photos.length}장`;
-    }
-    if (photoGallerySize) {
-      photoGallerySize.textContent = `서버 사용량: ${formatBytes(totalBytes)} (1GB 중 ${quotaPercent}% 사용)`;
     }
 
     if (photos.length === 0) {
