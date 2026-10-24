@@ -160,6 +160,18 @@
   const btnDeleteQnaAnswer = document.getElementById('btn-delete-qna-answer');
   const btnCancelQnaAnswer = document.getElementById('btn-cancel-qna-answer');
 
+  // 질문 수정 모달 (작성자 또는 관리자 전용) DOM 요소
+  const qnaEditModal = document.getElementById('qna-edit-modal');
+  const qnaEditBackdrop = document.getElementById('qna-edit-backdrop');
+  const qnaEditClose = document.getElementById('qna-edit-close');
+  const qnaEditMetaAuthor = document.getElementById('qna-edit-meta-author');
+  const qnaEditMetaDate = document.getElementById('qna-edit-meta-date');
+  const qnaEditTitleInput = document.getElementById('qna-edit-title-input');
+  const qnaEditContentInput = document.getElementById('qna-edit-content-input');
+  const btnSaveQnaEdit = document.getElementById('btn-save-qna-edit');
+  const btnCancelQnaEdit = document.getElementById('btn-cancel-qna-edit');
+  let editingQnaId = null;
+
   // 관리자 전용 회원 글 수정 모달 DOM 요소
   const adminPostEditModal = document.getElementById('admin-post-edit-modal');
   const adminPostEditBackdrop = document.getElementById('admin-post-edit-backdrop');
@@ -2392,6 +2404,71 @@
     if (qnaModalAnswerInput) qnaModalAnswerInput.value = '';
   }
 
+  function openQnaEditModal(qnaItem) {
+    if (!qnaEditModal || !qnaItem) return;
+    editingQnaId = qnaItem.id;
+
+    if (qnaEditMetaAuthor) qnaEditMetaAuthor.textContent = `작성자: ${qnaItem.author || '익명'}`;
+    if (qnaEditMetaDate) qnaEditMetaDate.textContent = `작성일시: ${qnaItem.createdAt || '-'}`;
+    if (qnaEditTitleInput) qnaEditTitleInput.value = qnaItem.title || '';
+    if (qnaEditContentInput) qnaEditContentInput.value = qnaItem.content || '';
+
+    qnaEditModal.style.display = 'flex';
+    if (qnaEditTitleInput) qnaEditTitleInput.focus();
+  }
+
+  function closeQnaEditModal() {
+    editingQnaId = null;
+    if (qnaEditModal) qnaEditModal.style.display = 'none';
+    if (qnaEditTitleInput) qnaEditTitleInput.value = '';
+    if (qnaEditContentInput) qnaEditContentInput.value = '';
+  }
+
+  function initQnaEditModal() {
+    if (btnSaveQnaEdit) {
+      btnSaveQnaEdit.addEventListener('click', function () {
+        if (!editingQnaId) return;
+
+        const newTitle = qnaEditTitleInput ? qnaEditTitleInput.value.trim() : '';
+        const newContent = qnaEditContentInput ? qnaEditContentInput.value.trim() : '';
+
+        if (!newTitle) {
+          alert('질문 제목을 입력해 주세요.');
+          if (qnaEditTitleInput) qnaEditTitleInput.focus();
+          return;
+        }
+
+        if (!newContent) {
+          alert('질문 내용을 입력해 주세요.');
+          if (qnaEditContentInput) qnaEditContentInput.focus();
+          return;
+        }
+
+        const list = getQnaList();
+        const target = list.find(q => q.id === editingQnaId);
+        if (!target) {
+          alert('수정할 질문을 찾을 수 없습니다.');
+          closeQnaEditModal();
+          return;
+        }
+
+        target.title = newTitle;
+        target.content = newContent;
+
+        saveQnaList(list);
+        cloudPushQna(target);
+
+        renderQnaList();
+        closeQnaEditModal();
+        alert('질문 내용이 성공적으로 수정 및 저장되었습니다.');
+      });
+    }
+
+    if (btnCancelQnaEdit) btnCancelQnaEdit.addEventListener('click', closeQnaEditModal);
+    if (qnaEditClose) qnaEditClose.addEventListener('click', closeQnaEditModal);
+    if (qnaEditBackdrop) qnaEditBackdrop.addEventListener('click', closeQnaEditModal);
+  }
+
   function renderQnaList() {
     if (!qnaItemsList) return;
 
@@ -2424,14 +2501,13 @@
 
       let answerHtml = '';
       if (hasAnswer) {
-        const ansAuthor = escapeHtml(q.answeredBy || '예성원');
         const ansDate = escapeHtml(q.answeredAt || '');
         const ansText = escapeHtml(q.answer);
 
         answerHtml = `
           <div class="qna-answer-box">
             <div class="qna-answer-header">
-              <span class="qna-answer-author">👑 관리자(${ansAuthor})의 답변</span>
+              <span class="qna-answer-author">👑 관리자의 답변</span>
               <span class="qna-answer-date">${ansDate}</span>
             </div>
             <p class="qna-answer-text">${ansText}</p>
@@ -2439,18 +2515,32 @@
         `;
       }
 
-      // 관리자 로그인 시 답변 작성/수정, 답변만 삭제, 질문 삭제 버튼 표시
-      let adminActionHtml = '';
-      if (isAdmin(currentUser)) {
-        adminActionHtml = `
-          <div class="qna-admin-action-row">
-            <button type="button" class="btn-qna-answer" data-id="${id}">
-              ${hasAnswer ? '✏️ 답변 수정' : '💬 답변 달기'}
-            </button>
-            ${hasAnswer ? `<button type="button" class="btn-admin-answer-del" data-id="${id}">🗑️ 답변만 삭제</button>` : ''}
-            <button type="button" class="btn-admin-qna-del" data-id="${id}">🗑️ 질문 삭제</button>
-          </div>
-        `;
+      // 관리자 또는 글쓴이가 로그인했을 때만 수정과 삭제 버튼 표시
+      const isAdm = isAdmin(currentUser);
+      const isAuthor = Boolean(currentUser && currentUser.name === q.author && currentUser.pin === q.pin);
+      const canManage = isAdm || isAuthor;
+
+      let actionRowHtml = '';
+      if (canManage) {
+        if (isAdm) {
+          actionRowHtml = `
+            <div class="qna-admin-action-row">
+              <button type="button" class="btn-qna-answer" data-id="${id}">
+                ${hasAnswer ? '✏️ 답변 수정' : '💬 답변 달기'}
+              </button>
+              ${hasAnswer ? `<button type="button" class="btn-admin-answer-del" data-id="${id}">🗑️ 답변만 삭제</button>` : ''}
+              <button type="button" class="btn-qna-edit" data-id="${id}">✏️ 질문 수정</button>
+              <button type="button" class="btn-qna-card-del" data-id="${id}">🗑️ 질문 삭제</button>
+            </div>
+          `;
+        } else if (isAuthor) {
+          actionRowHtml = `
+            <div class="qna-admin-action-row">
+              <button type="button" class="btn-qna-edit" data-id="${id}">✏️ 질문 수정</button>
+              <button type="button" class="btn-qna-card-del" data-id="${id}">🗑️ 질문 삭제</button>
+            </div>
+          `;
+        }
       }
 
       html += `
@@ -2460,13 +2550,13 @@
             <div class="qna-meta-info">
               <span class="qna-author">${author}</span>
               <span class="qna-date">${date}</span>
-              <button type="button" class="btn-qna-del" data-id="${id}">삭제</button>
+              ${canManage ? `<button type="button" class="btn-qna-del" data-id="${id}" title="질문 삭제">삭제</button>` : ''}
             </div>
           </div>
           <h4 class="qna-question-title">${title}</h4>
           <p class="qna-question-body">${content}</p>
           ${answerHtml}
-          ${adminActionHtml}
+          ${actionRowHtml}
         </div>
       `;
     });
@@ -2504,14 +2594,36 @@
       });
     });
 
-    // 3. 관리자 질문 삭제 버튼 이벤트 (.btn-admin-qna-del)
-    qnaItemsList.querySelectorAll('.btn-admin-qna-del').forEach(function (btn) {
+    // 3. 질문 수정 버튼 이벤트 (.btn-qna-edit) - 관리자 또는 글쓴이
+    qnaItemsList.querySelectorAll('.btn-qna-edit').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const id = btn.getAttribute('data-id');
+        const item = list.find(q => q.id === id);
+        if (item) openQnaEditModal(item);
+      });
+    });
+
+    // 4. 질문 삭제 버튼 이벤트 (.btn-qna-card-del 및 .btn-qna-del) - 관리자 또는 글쓴이
+    const deleteButtons = qnaItemsList.querySelectorAll('.btn-qna-card-del, .btn-qna-del');
+    deleteButtons.forEach(function (btn) {
       btn.addEventListener('click', function () {
         const id = btn.getAttribute('data-id');
         const item = list.find(q => q.id === id);
         if (!item) return;
 
-        if (!confirm(`[관리자 확인]\n\n작성자: ${item.author || '익명'}\n질문: "${item.title || '질문'}"\n\n이 질문을 완전히 삭제하시겠습니까?\n(질문과 답변이 모두 영구 삭제되며 파이어베이스에서도 삭제됩니다)`)) {
+        const isAdmUser = isAdmin(currentUser);
+        const isAuthUser = Boolean(currentUser && currentUser.name === item.author && currentUser.pin === item.pin);
+
+        if (!isAdmUser && !isAuthUser) {
+          alert('글쓴이 또는 관리자만 삭제할 수 있습니다.');
+          return;
+        }
+
+        const confirmMsg = isAdmUser
+          ? `[관리자 확인]\n\n작성자: ${item.author || '익명'}\n질문: "${item.title || '질문'}"\n\n이 질문을 완전히 삭제하시겠습니까?\n(질문과 답변이 모두 영구 삭제되며 파이어베이스에서도 삭제됩니다)`
+          : `[질문 삭제 확인]\n\n"${item.title || '질문'}" 질문을 삭제하시겠습니까?\n(삭제 시 실시간 데이터베이스에서도 완전히 삭제됩니다)`;
+
+        if (!confirm(confirmMsg)) {
           return;
         }
 
@@ -2520,38 +2632,6 @@
         cloudDeleteQna(id);
         renderQnaList();
         alert('질문이 삭제되었습니다.');
-      });
-    });
-
-    // 4. 일반 회원 및 상단 헤더의 질문 삭제 버튼 이벤트 (.btn-qna-del)
-    qnaItemsList.querySelectorAll('.btn-qna-del').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        const id = btn.getAttribute('data-id');
-        const item = list.find(q => q.id === id);
-        if (!item) return;
-
-        let canDelete = false;
-        if (isAdmin(currentUser)) {
-          if (confirm(`[관리자 확인]\n\n작성자: ${item.author || '익명'}\n질문: "${item.title || '질문'}"\n\n이 질문을 완전히 삭제하시겠습니까?`)) {
-            canDelete = true;
-          }
-        } else {
-          const inputPin = prompt(`"${item.title}" 질문을 삭제하시려면 등록 시 입력한 비밀번호(숫자 4자리)를 입력해 주세요:`);
-          if (inputPin === null) return;
-          if (inputPin.trim() === String(item.pin).trim()) {
-            canDelete = true;
-          } else {
-            alert('비밀번호가 일치하지 않습니다.');
-          }
-        }
-
-        if (canDelete) {
-          const updated = list.filter(q => q.id !== id);
-          saveQnaList(updated);
-          cloudDeleteQna(id);
-          renderQnaList();
-          alert('질문이 삭제되었습니다.');
-        }
       });
     });
   }
@@ -2584,6 +2664,7 @@
     initAdminPostEditModal();
     initPhotos();
     initQna();
+    initQnaEditModal();
     initAttendanceDownload();
     initAdminPostsDownload();
     initSyncControls();

@@ -602,6 +602,33 @@
     </div>
   </div>
 
+  <!-- 질문 수정 모달 (작성자 또는 관리자 전용) -->
+  <div id="qna-edit-modal" class="qna-answer-modal" style="display: none;" role="dialog" aria-modal="true" aria-label="질문 수정">
+    <div class="photo-modal-backdrop" id="qna-edit-backdrop"></div>
+    <div class="qna-answer-modal-card">
+      <div class="qna-modal-header">
+        <h3 class="qna-answer-modal-title">✏️ 질문 내용 수정</h3>
+        <button type="button" class="qna-modal-close" id="qna-edit-close" aria-label="닫기">✕</button>
+      </div>
+      <div class="admin-post-meta-box">
+        <span class="admin-post-meta-item" id="qna-edit-meta-author">작성자: </span>
+        <span class="admin-post-meta-item" id="qna-edit-meta-date">작성일시: </span>
+      </div>
+      <div class="form-group">
+        <label for="qna-edit-title-input" class="form-label">질문 제목</label>
+        <input type="text" id="qna-edit-title-input" class="post-title-input" placeholder="질문 제목을 입력해 주세요." required>
+      </div>
+      <div class="form-group">
+        <label for="qna-edit-content-input" class="form-label">질문 내용</label>
+        <textarea id="qna-edit-content-input" class="post-textarea" rows="6" placeholder="질문 내용을 입력해 주세요." required></textarea>
+      </div>
+      <div class="edit-actions-row">
+        <button type="button" id="btn-save-qna-edit" class="btn-action btn-save">수정 내용 저장</button>
+        <button type="button" id="btn-cancel-qna-edit" class="btn-action btn-cancel">취소</button>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
