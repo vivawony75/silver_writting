@@ -158,7 +158,19 @@
   const qnaModalQContent = document.getElementById('qna-modal-q-content');
   const qnaModalAnswerInput = document.getElementById('qna-modal-answer-input');
   const btnSaveQnaAnswer = document.getElementById('btn-save-qna-answer');
+  const btnDeleteQnaAnswer = document.getElementById('btn-delete-qna-answer');
   const btnCancelQnaAnswer = document.getElementById('btn-cancel-qna-answer');
+
+  // 관리자 전용 회원 글 수정 모달 DOM 요소
+  const adminPostEditModal = document.getElementById('admin-post-edit-modal');
+  const adminPostEditBackdrop = document.getElementById('admin-post-edit-backdrop');
+  const adminPostEditClose = document.getElementById('admin-post-edit-close');
+  const adminPostMetaAuthor = document.getElementById('admin-post-meta-author');
+  const adminPostMetaDate = document.getElementById('admin-post-meta-date');
+  const adminEditPostTitle = document.getElementById('admin-edit-post-title');
+  const adminEditPostContent = document.getElementById('admin-edit-post-content');
+  const btnSaveAdminPost = document.getElementById('btn-save-admin-post');
+  const btnCancelAdminPost = document.getElementById('btn-cancel-admin-post');
 
   let adminSyncTimer = null;
   let lastLoadedDay = null;
@@ -166,6 +178,7 @@
   let selectedPostId = null;
   let currentCompressedPhoto = null; // { dataUrl, width, height, originalBytes, compressedBytes }
   let answeringQnaId = null; // 현재 관리자가 답변 중인 Q&A ID
+  let editingAdminPostId = null; // 현재 관리자가 수정 중인 회원 글 ID
 
   /* ========================================================
      1. 베껴쓰기 (0시 자동 갱신)
@@ -402,14 +415,14 @@
   }
 
   /**
-   * 관리자 회원 글 모음 테이블 렌더링
+   * 관리자 회원 글 모음 테이블 렌더링 (수정 및 삭제 기능 포함)
    */
   function renderAdminPostsTable() {
     if (!adminPostsTableBody) return;
 
     const allPosts = getAllPosts();
     if (allPosts.length === 0) {
-      adminPostsTableBody.innerHTML = '<tr><td colspan="5" class="admin-posts-empty-row">작성된 회원 글이 없습니다.</td></tr>';
+      adminPostsTableBody.innerHTML = '<tr><td colspan="6" class="admin-posts-empty-row">작성된 회원 글이 없습니다.</td></tr>';
       return;
     }
 
@@ -421,6 +434,7 @@
       const date = escapeHtml(post.createdAt || '');
       const content = escapeHtml(post.content || '');
       const cleanContentTooltip = (post.content || '').replace(/"/g, '&quot;');
+      const postId = escapeHtml(post.id);
 
       html += `
         <tr>
@@ -429,11 +443,147 @@
           <td class="cell-author">${author}</td>
           <td class="cell-title" title="${title}">${title}</td>
           <td class="cell-content" title="${cleanContentTooltip}">${content}</td>
+          <td class="cell-actions">
+            <div class="table-actions-wrap">
+              <button type="button" class="btn-table-edit btn-admin-post-edit" data-id="${postId}">✏️ 수정</button>
+              <button type="button" class="btn-table-del btn-admin-post-del" data-id="${postId}">🗑️ 삭제</button>
+            </div>
+          </td>
         </tr>
       `;
     });
 
     adminPostsTableBody.innerHTML = html;
+
+    // 관리자 회원 글 수정 버튼 이벤트
+    adminPostsTableBody.querySelectorAll('.btn-admin-post-edit').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const id = btn.getAttribute('data-id');
+        openAdminPostEditModal(id);
+      });
+    });
+
+    // 관리자 회원 글 삭제 버튼 이벤트
+    adminPostsTableBody.querySelectorAll('.btn-admin-post-del').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const id = btn.getAttribute('data-id');
+        deleteAdminPost(id);
+      });
+    });
+  }
+
+  /**
+   * 관리자 회원 글 수정 모달 열기
+   */
+  function openAdminPostEditModal(postId) {
+    if (!adminPostEditModal) return;
+    const allPosts = getAllPosts();
+    const post = allPosts.find(function (p) { return p.id === postId; });
+    if (!post) {
+      alert('해당 글을 찾을 수 없습니다.');
+      return;
+    }
+
+    editingAdminPostId = post.id;
+    if (adminPostMetaAuthor) adminPostMetaAuthor.textContent = `작성자: ${post.author || '익명'}`;
+    if (adminPostMetaDate) adminPostMetaDate.textContent = `작성일시: ${post.createdAt || '-'}`;
+    if (adminEditPostTitle) adminEditPostTitle.value = post.title || '';
+    if (adminEditPostContent) adminEditPostContent.value = post.content || '';
+
+    adminPostEditModal.style.display = 'flex';
+    if (adminEditPostTitle) adminEditPostTitle.focus();
+  }
+
+  /**
+   * 관리자 회원 글 수정 모달 닫기
+   */
+  function closeAdminPostEditModal() {
+    editingAdminPostId = null;
+    if (adminPostEditModal) adminPostEditModal.style.display = 'none';
+    if (adminEditPostTitle) adminEditPostTitle.value = '';
+    if (adminEditPostContent) adminEditPostContent.value = '';
+  }
+
+  /**
+   * 관리자 회원 글 삭제 처리
+   */
+  function deleteAdminPost(postId) {
+    const allPosts = getAllPosts();
+    const post = allPosts.find(function (p) { return p.id === postId; });
+    if (!post) return;
+
+    const authorName = post.author || '익명';
+    const postTitle = post.title || '제목 없음';
+
+    if (!confirm(`[관리자 확인]\n\n작성자: ${authorName}\n제목: "${postTitle}"\n\n이 회원 글을 정말 삭제하시겠습니까?\n(삭제 시 파이어베이스 실시간 데이터베이스에서도 완전히 삭제됩니다)`)) {
+      return;
+    }
+
+    const updated = allPosts.filter(function (p) { return p.id !== postId; });
+    saveAllPosts(updated);
+    cloudDeletePost(postId);
+
+    if (selectedPostId === postId) {
+      selectedPostId = null;
+      if (postViewCard) postViewCard.style.display = 'none';
+    }
+
+    renderAdminPostsTable();
+    renderUserPosts();
+    alert(`"${postTitle}" 회원 글이 삭제되었습니다.`);
+  }
+
+  /**
+   * 관리자 회원 글 수정 모달 이벤트 초기화
+   */
+  function initAdminPostEditModal() {
+    if (btnSaveAdminPost) {
+      btnSaveAdminPost.addEventListener('click', function () {
+        if (!editingAdminPostId) return;
+
+        const newTitle = adminEditPostTitle ? adminEditPostTitle.value.trim() : '';
+        const newContent = adminEditPostContent ? adminEditPostContent.value.trim() : '';
+
+        if (!newTitle) {
+          alert('글 제목을 입력해 주세요.');
+          if (adminEditPostTitle) adminEditPostTitle.focus();
+          return;
+        }
+
+        if (!newContent) {
+          alert('글 내용을 입력해 주세요.');
+          if (adminEditPostContent) adminEditPostContent.focus();
+          return;
+        }
+
+        const allPosts = getAllPosts();
+        const postIndex = allPosts.findIndex(function (p) { return p.id === editingAdminPostId; });
+        if (postIndex === -1) {
+          alert('수정할 글을 찾을 수 없습니다.');
+          closeAdminPostEditModal();
+          return;
+        }
+
+        allPosts[postIndex].title = newTitle;
+        allPosts[postIndex].content = newContent;
+        saveAllPosts(allPosts);
+        cloudPushPost(allPosts[postIndex]);
+
+        renderAdminPostsTable();
+        renderUserPosts();
+        if (selectedPostId === editingAdminPostId) {
+          renderPostDetail(selectedPostId);
+        }
+
+        const savedTitle = newTitle;
+        closeAdminPostEditModal();
+        alert(`[관리자] "${savedTitle}" 글이 성공적으로 수정 및 저장되었습니다.`);
+      });
+    }
+
+    if (btnCancelAdminPost) btnCancelAdminPost.addEventListener('click', closeAdminPostEditModal);
+    if (adminPostEditClose) adminPostEditClose.addEventListener('click', closeAdminPostEditModal);
+    if (adminPostEditBackdrop) adminPostEditBackdrop.addEventListener('click', closeAdminPostEditModal);
   }
 
   /**
@@ -2188,6 +2338,32 @@
       });
     }
 
+    // 2-1. 관리자 답변 모달 내 [답변 삭제] 버튼
+    if (btnDeleteQnaAnswer) {
+      btnDeleteQnaAnswer.addEventListener('click', function () {
+        if (!answeringQnaId) return;
+
+        const list = getQnaList();
+        const target = list.find(q => q.id === answeringQnaId);
+        if (!target) return;
+
+        if (!confirm(`[관리자 확인]\n\n질문: "${target.title || '질문'}"\n\n등록된 관리자 답변을 삭제하시겠습니까?\n(질문 내용은 그대로 유지되며 [답변 대기중] 상태로 돌아갑니다)`)) {
+          return;
+        }
+
+        delete target.answer;
+        delete target.answeredAt;
+        delete target.answeredBy;
+
+        saveQnaList(list);
+        cloudPushQna(target);
+
+        renderQnaList();
+        closeQnaAnswerModal();
+        alert('관리자 답변이 삭제되었습니다. 질문은 [답변 대기중] 상태로 변경되었습니다.');
+      });
+    }
+
     // 3. 관리자 답변 모달 닫기
     if (btnCancelQnaAnswer) btnCancelQnaAnswer.addEventListener('click', closeQnaAnswerModal);
     if (qnaAnswerClose) qnaAnswerClose.addEventListener('click', closeQnaAnswerModal);
@@ -2203,6 +2379,15 @@
     if (qnaModalQTitle) qnaModalQTitle.textContent = qnaItem.title || '질문';
     if (qnaModalQContent) qnaModalQContent.textContent = qnaItem.content || '';
     if (qnaModalAnswerInput) qnaModalAnswerInput.value = qnaItem.answer || '';
+
+    // 기존 답변이 있으면 [답변 삭제] 버튼 표시, 신규 답변 작성이면 숨김
+    if (btnDeleteQnaAnswer) {
+      if (qnaItem.answer && qnaItem.answer.trim()) {
+        btnDeleteQnaAnswer.style.display = 'inline-block';
+      } else {
+        btnDeleteQnaAnswer.style.display = 'none';
+      }
+    }
 
     qnaAnswerModal.style.display = 'flex';
     if (qnaModalAnswerInput) qnaModalAnswerInput.focus();
@@ -2261,7 +2446,7 @@
         `;
       }
 
-      // 관리자 로그인 시 답변 작성/수정 버튼 표시
+      // 관리자 로그인 시 답변 작성/수정, 답변만 삭제, 질문 삭제 버튼 표시
       let adminActionHtml = '';
       if (isAdmin(currentUser)) {
         adminActionHtml = `
@@ -2269,6 +2454,8 @@
             <button type="button" class="btn-qna-answer" data-id="${id}">
               ${hasAnswer ? '✏️ 답변 수정' : '💬 답변 달기'}
             </button>
+            ${hasAnswer ? `<button type="button" class="btn-admin-answer-del" data-id="${id}">🗑️ 답변만 삭제</button>` : ''}
+            <button type="button" class="btn-admin-qna-del" data-id="${id}">🗑️ 질문 삭제</button>
           </div>
         `;
       }
@@ -2293,7 +2480,7 @@
 
     qnaItemsList.innerHTML = html;
 
-    // 관리자 답변 모달 버튼 이벤트
+    // 1. 관리자 답변 모달 버튼 이벤트
     qnaItemsList.querySelectorAll('.btn-qna-answer').forEach(function (btn) {
       btn.addEventListener('click', function () {
         const id = btn.getAttribute('data-id');
@@ -2302,7 +2489,48 @@
       });
     });
 
-    // 질문 삭제 버튼 이벤트
+    // 2. 관리자 답변만 삭제 버튼 이벤트
+    qnaItemsList.querySelectorAll('.btn-admin-answer-del').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const id = btn.getAttribute('data-id');
+        const item = list.find(q => q.id === id);
+        if (!item) return;
+
+        if (!confirm(`[관리자 확인]\n\n질문: "${item.title || '질문'}"\n\n등록된 관리자 답변을 삭제하시겠습니까?\n(질문 내용은 보존되며 [답변 대기중] 상태로 돌아갑니다)`)) {
+          return;
+        }
+
+        delete item.answer;
+        delete item.answeredAt;
+        delete item.answeredBy;
+
+        saveQnaList(list);
+        cloudPushQna(item);
+        renderQnaList();
+        alert('답변이 삭제되었습니다. 이제 질문은 [답변 대기중] 상태입니다.');
+      });
+    });
+
+    // 3. 관리자 질문 삭제 버튼 이벤트 (.btn-admin-qna-del)
+    qnaItemsList.querySelectorAll('.btn-admin-qna-del').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const id = btn.getAttribute('data-id');
+        const item = list.find(q => q.id === id);
+        if (!item) return;
+
+        if (!confirm(`[관리자 확인]\n\n작성자: ${item.author || '익명'}\n질문: "${item.title || '질문'}"\n\n이 질문을 완전히 삭제하시겠습니까?\n(질문과 답변이 모두 영구 삭제되며 파이어베이스에서도 삭제됩니다)`)) {
+          return;
+        }
+
+        const updated = list.filter(q => q.id !== id);
+        saveQnaList(updated);
+        cloudDeleteQna(id);
+        renderQnaList();
+        alert('질문이 삭제되었습니다.');
+      });
+    });
+
+    // 4. 일반 회원 및 상단 헤더의 질문 삭제 버튼 이벤트 (.btn-qna-del)
     qnaItemsList.querySelectorAll('.btn-qna-del').forEach(function (btn) {
       btn.addEventListener('click', function () {
         const id = btn.getAttribute('data-id');
@@ -2311,7 +2539,7 @@
 
         let canDelete = false;
         if (isAdmin(currentUser)) {
-          if (confirm(`[관리자 확인] "${item.title}" 질문을 삭제하시겠습니까?`)) {
+          if (confirm(`[관리자 확인]\n\n작성자: ${item.author || '익명'}\n질문: "${item.title || '질문'}"\n\n이 질문을 완전히 삭제하시겠습니까?`)) {
             canDelete = true;
           }
         } else {
@@ -2360,6 +2588,7 @@
     initAuth();
     initWriting();
     initPostViewActions();
+    initAdminPostEditModal();
     initPhotos();
     initQna();
     initAttendanceDownload();

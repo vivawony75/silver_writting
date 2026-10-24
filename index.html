@@ -523,6 +523,7 @@
                   <th class="col-author">작성자</th>
                   <th class="col-title">제목</th>
                   <th class="col-content">내용</th>
+                  <th class="col-actions">관리</th>
                 </tr>
               </thead>
               <tbody id="admin-posts-table-body"></tbody>
@@ -559,6 +560,33 @@
     </div>
   </div>
 
+  <!-- 관리자 전용 회원 글 수정 모달 -->
+  <div id="admin-post-edit-modal" class="admin-post-modal" style="display: none;" role="dialog" aria-modal="true" aria-label="관리자 회원 글 수정">
+    <div class="photo-modal-backdrop" id="admin-post-edit-backdrop"></div>
+    <div class="admin-post-modal-card">
+      <div class="qna-modal-header">
+        <h3 class="admin-post-modal-title">👑 관리자 회원 글 수정</h3>
+        <button type="button" class="qna-modal-close" id="admin-post-edit-close" aria-label="닫기">✕</button>
+      </div>
+      <div class="admin-post-meta-box">
+        <span class="admin-post-meta-item" id="admin-post-meta-author">작성자: </span>
+        <span class="admin-post-meta-item" id="admin-post-meta-date">작성일시: </span>
+      </div>
+      <div class="form-group">
+        <label for="admin-edit-post-title" class="form-label">글 제목</label>
+        <input type="text" id="admin-edit-post-title" class="post-title-input" placeholder="글 제목을 입력해 주세요" required>
+      </div>
+      <div class="form-group">
+        <label for="admin-edit-post-content" class="form-label">글 내용</label>
+        <textarea id="admin-edit-post-content" class="post-textarea" rows="8" placeholder="글 내용을 입력해 주세요" required></textarea>
+      </div>
+      <div class="edit-actions-row">
+        <button type="button" id="btn-save-admin-post" class="btn-action btn-save">수정 내용 저장</button>
+        <button type="button" id="btn-cancel-admin-post" class="btn-action btn-cancel">취소</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 관리자 Q&A 답변 작성/수정 모달 -->
   <div id="qna-answer-modal" class="qna-answer-modal" style="display: none;" role="dialog" aria-modal="true" aria-label="관리자 답변 작성">
     <div class="photo-modal-backdrop" id="qna-answer-backdrop"></div>
@@ -578,6 +606,7 @@
       </div>
       <div class="edit-actions-row">
         <button type="button" id="btn-save-qna-answer" class="btn-action btn-save">답변 등록 및 저장</button>
+        <button type="button" id="btn-delete-qna-answer" class="btn-action btn-delete" style="display: none;">🗑️ 답변 삭제</button>
         <button type="button" id="btn-cancel-qna-answer" class="btn-action btn-cancel">취소</button>
       </div>
     </div>
