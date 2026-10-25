@@ -1770,7 +1770,7 @@ a {
   box-shadow: 0 6px 20px rgba(51, 108, 78, 0.3);
 }
 
-/* 사이트 링크 목록 - 정사각형 가로 배열 */
+/* 사이트 링크 목록 - 가로 세로 3:2 비율 가로 배열 */
 .site-links-row {
   display: flex;
   flex-direction: row;
@@ -1785,16 +1785,16 @@ a {
 }
 
 .site-link {
-  width: 140px;
+  width: 210px;
   height: 140px;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 3 / 2;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 14px 8px 10px;
+  padding: 16px 18px 12px;
   position: relative;
   background-color: var(--bg-card);
   border: 2px solid var(--green-border);
@@ -1864,8 +1864,8 @@ a {
 
 .icon-arrow {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 10px;
+  right: 12px;
   flex-shrink: 0;
   color: var(--text-muted);
   transition: transform 0.2s ease, color 0.2s ease;
@@ -1878,17 +1878,17 @@ a {
 
 @media (max-width: 480px) {
   .site-links-row {
-    gap: 10px;
+    gap: 12px;
   }
   .site-item {
-    flex: 1 1 calc(50% - 5px);
-    max-width: calc(50% - 5px);
+    flex: 1 1 calc(50% - 6px);
+    max-width: calc(50% - 6px);
   }
   .site-link {
     width: 100%;
     height: auto;
-    aspect-ratio: 1 / 1;
-    padding: 10px 6px;
+    aspect-ratio: 3 / 2;
+    padding: 12px 10px;
   }
 }
 
