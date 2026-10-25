@@ -1770,25 +1770,38 @@ a {
   box-shadow: 0 6px 20px rgba(51, 108, 78, 0.3);
 }
 
-.site-item {
-  margin-bottom: 16px;
+/* 사이트 링크 목록 - 정사각형 가로 배열 */
+.site-links-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
 }
 
-.site-item:last-child {
+.site-item {
   margin-bottom: 0;
+  flex: 0 0 auto;
 }
 
 .site-link {
+  width: 140px;
+  height: 140px;
+  aspect-ratio: 1 / 1;
+  box-sizing: border-box;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  justify-content: space-between;
-  gap: 18px;
+  text-align: center;
+  padding: 14px 8px 10px;
+  position: relative;
   background-color: var(--bg-card);
   border: 2px solid var(--green-border);
   border-radius: var(--radius-card);
-  padding: 20px 24px;
   box-shadow: var(--shadow-card);
   transition: all 0.25s ease;
+  text-decoration: none;
 }
 
 .site-link:hover,
@@ -1802,33 +1815,81 @@ a {
 .site-info {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
+  width: 100%;
 }
 
 .site-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+}
+
+.site-school {
   font-size: 14pt; /* 사이트 제목 14pt */
   font-weight: 700;
   color: var(--text-main);
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+  word-break: keep-all;
+  transition: color 0.2s ease;
+}
+
+.site-dept {
+  font-size: 12pt; /* 학과 본문 12pt */
+  font-weight: 500;
+  color: var(--text-sub);
+  line-height: 1.25;
+  letter-spacing: -0.3px;
+  word-break: keep-all;
 }
 
 .site-url {
   font-size: 12pt; /* URL 및 본문 12pt */
   color: var(--text-muted);
-  word-break: break-all;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: block;
 }
 
-.site-link:hover .site-name {
+.site-link:hover .site-school {
   color: var(--green-primary);
 }
 
 .icon-arrow {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   flex-shrink: 0;
-  color: currentColor;
-  transition: transform 0.2s ease;
+  color: var(--text-muted);
+  transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .site-link:hover .icon-arrow {
+  color: var(--green-primary);
   transform: translate(2px, -2px);
+}
+
+@media (max-width: 480px) {
+  .site-links-row {
+    gap: 10px;
+  }
+  .site-item {
+    flex: 1 1 calc(50% - 5px);
+    max-width: calc(50% - 5px);
+  }
+  .site-link {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    padding: 10px 6px;
+  }
 }
 
 /* ========================================================
