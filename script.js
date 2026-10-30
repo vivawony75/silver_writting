@@ -3063,6 +3063,37 @@
     });
   }
 
+  /* ========================================================
+     7. 교육기관 스크롤 윈도우 창 제어 (좌우 버튼 및 휠 스크롤)
+     ======================================================== */
+  function initEduScroll() {
+    const scrollWin = document.getElementById('edu-scroll-window');
+    const btnPrev = document.getElementById('btn-edu-scroll-prev');
+    const btnNext = document.getElementById('btn-edu-scroll-next');
+
+    if (!scrollWin) return;
+
+    if (btnPrev) {
+      btnPrev.addEventListener('click', function () {
+        scrollWin.scrollBy({ left: -226, behavior: 'smooth' });
+      });
+    }
+
+    if (btnNext) {
+      btnNext.addEventListener('click', function () {
+        scrollWin.scrollBy({ left: 226, behavior: 'smooth' });
+      });
+    }
+
+    // 마우스 휠 가로 스크롤 지원
+    scrollWin.addEventListener('wheel', function (e) {
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        scrollWin.scrollLeft += e.deltaY;
+      }
+    }, { passive: false });
+  }
+
   // 초기 실행
   document.addEventListener('DOMContentLoaded', function () {
     updateDailyContent();
@@ -3079,6 +3110,7 @@
     initAdminPostsDownload();
     initSyncControls();
     initDictSearch();
+    initEduScroll();
     // 페이지 로드 시 파이어베이스 실시간 데이터 동기화 시도 (백그라운드)
     fetchAndMergeCloudData(false);
   });

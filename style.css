@@ -1770,18 +1770,132 @@ a {
   box-shadow: 0 6px 20px rgba(51, 108, 78, 0.3);
 }
 
-/* 사이트 링크 목록 - 가로 세로 3:2 비율 가로 배열 */
+/* ========================================================
+   글쓰기 관련 교육기관 - 스크롤 윈도우 창
+   ======================================================== */
+.edu-window-card {
+  background-color: var(--bg-card);
+  border: 2px solid var(--green-border);
+  border-radius: var(--radius-card);
+  padding: 24px 28px;
+  box-shadow: var(--shadow-card);
+  max-width: 760px;
+  margin-bottom: 20px;
+}
+
+.edu-window-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border-light);
+}
+
+.edu-window-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.edu-window-badge {
+  font-size: 14pt; /* 제목 14pt */
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.edu-window-count {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 12pt;
+  font-weight: 700;
+  background-color: var(--green-soft);
+  color: var(--green-primary);
+  border: 1px solid var(--green-border);
+  border-radius: 999px;
+}
+
+.edu-window-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-scroll-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background-color: #FAFCFA;
+  border: 2px solid var(--green-border);
+  border-radius: var(--radius-button);
+  color: var(--green-primary);
+  font-size: 12pt;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.btn-scroll-nav:hover,
+.btn-scroll-nav:focus-visible {
+  background-color: var(--green-primary);
+  color: #FFFFFF;
+  border-color: var(--green-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(51, 108, 78, 0.2);
+}
+
+.btn-scroll-nav:active {
+  transform: translateY(0);
+}
+
+/* 고정된 크기 안에서 넘겨보는 가로 스크롤 윈도우 */
+.edu-scroll-window {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  padding: 4px 2px 14px 2px;
+  scrollbar-width: auto;
+  scrollbar-color: var(--green-primary) #F3ECE2;
+}
+
+.edu-scroll-window::-webkit-scrollbar {
+  height: 12px;
+}
+
+.edu-scroll-window::-webkit-scrollbar-track {
+  background: #F3ECE2;
+  border-radius: 6px;
+}
+
+.edu-scroll-window::-webkit-scrollbar-thumb {
+  background-color: var(--green-primary);
+  border-radius: 6px;
+  border: 2.5px solid #F3ECE2;
+}
+
+.edu-scroll-window::-webkit-scrollbar-thumb:hover {
+  background-color: var(--green-hover);
+}
+
+/* 사이트 링크 목록 - 가로 3:2 비율 및 스크롤 배치 */
 .site-links-row {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 16px;
   align-items: center;
+  width: max-content;
 }
 
 .site-item {
   margin-bottom: 0;
   flex: 0 0 auto;
+  scroll-snap-align: start;
 }
 
 .site-link {
@@ -1876,19 +1990,26 @@ a {
   transform: translate(2px, -2px);
 }
 
-@media (max-width: 480px) {
-  .site-links-row {
-    gap: 12px;
+@media (max-width: 768px) {
+  .edu-window-card {
+    max-width: 100%;
+    padding: 20px 18px;
   }
-  .site-item {
-    flex: 1 1 calc(50% - 6px);
-    max-width: calc(50% - 6px);
+}
+
+@media (max-width: 480px) {
+  .edu-window-card {
+    padding: 16px 14px;
   }
   .site-link {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 3 / 2;
-    padding: 12px 10px;
+    width: 195px;
+    height: 130px;
+    padding: 14px 12px 10px;
+  }
+  .btn-scroll-nav {
+    width: 34px;
+    height: 34px;
+    font-size: 11pt;
   }
 }
 
